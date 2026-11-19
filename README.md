@@ -188,3 +188,7 @@ These figures describe the recorded project snapshot; verify results against you
 | Nhật Quang | Data and knowledge base (layer 1) |
 | Đình Lộc | Model and stylist (layer 2) |
 | Hữu Hoàng | Retrieval, quiz, UI, and API (layers 3–4) |
+
+## License
+
+This project is licensed under the [MIT License](LICENSE).

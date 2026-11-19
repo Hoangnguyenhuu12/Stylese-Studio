@@ -2,6 +2,7 @@
 name = "outfitmatch"
 version = "0.1.0"
 description = "AI Stylist cá nhân hoá cho thị trường VN — v3.1-lite MVP (Kien_truc_v3.1.md)"
+license = { file = "LICENSE" }
 requires-python = ">=3.12"
 dependencies = [
     # ── Core API + KB + Remote Stylist runtime (Vercel-safe) ─────────────
