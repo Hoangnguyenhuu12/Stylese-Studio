@@ -20,9 +20,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Stylese Studio — Your Style",
+  title: "Stylese Studio — Personal AI Stylist",
   description:
-    "Discover outfit suggestions tailored to your style and occasions.",
+    "Personal AI stylist for outfit matching, wardrobe curation, and size guidance.",
 };
 
 export default function RootLayout({
