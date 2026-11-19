@@ -8,12 +8,12 @@ type PreferenceState = { language: Language; theme: Theme; setLanguage: (value: 
 const Preferences = createContext<PreferenceState | null>(null);
 
 export function PreferencesProvider({ children }: { children: React.ReactNode }) {
-  const [language, updateLanguage] = useState<Language>("vi");
+  const [language, updateLanguage] = useState<Language>("en");
   const [theme, updateTheme] = useState<Theme>("light");
   useEffect(() => {
     const sync = () => {
       try {
-        updateLanguage(localStorage.getItem("stylese-language") === "en" ? "en" : "vi");
+        updateLanguage(localStorage.getItem("stylese-language") === "vi" ? "vi" : "en");
         updateTheme(localStorage.getItem("stylese-theme") === "dark" ? "dark" : "light");
       } catch { /* Preferences remain usable for this session. */ }
     };

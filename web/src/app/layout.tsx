@@ -20,9 +20,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Stylese Studio — Phong cách của bạn",
+  title: "Stylese Studio — Your Style",
   description:
-    "Khám phá gợi ý trang phục phù hợp với phong cách và dịp mặc của bạn.",
+    "Discover outfit suggestions tailored to your style and occasions.",
 };
 
 export default function RootLayout({
@@ -32,7 +32,7 @@ export default function RootLayout({
 }>) {
   return (
     <html
-      lang="vi"
+      lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col"><PreferencesProvider><DotSpotlight /><SiteHeader /><PageTransition>{children}</PageTransition></PreferencesProvider></body>
