@@ -373,3 +373,12 @@ html[data-theme="dark"] .tubelight-glow { background:#f1f1f1; box-shadow:0 1px 1
 /* Match the fixed prefix and rotating phrase on the same line box. */
 .hero-prefix { line-height:1.24; }
 .hero-phrase { top:0; }
+/* Stylist content rises in gently without re-animating streamed text updates. */
+@media (prefers-reduced-motion:no-preference) {
+  .chat-stylist .chat-heading,.chat-stylist .chat-welcome,.chat-stylist .chat-composer,.chat-stylist .chat-message { animation:stylese-chat-rise .7s cubic-bezier(.22,1,.36,1) both; }
+  .chat-stylist .chat-welcome { animation-delay:.08s; }
+  .chat-stylist .chat-composer { animation-delay:.16s; }
+}
+@keyframes stylese-chat-rise { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
+/* Keep the mark transparent in both themes. */
+html[data-theme] .site-header .wordmark { background:transparent; box-shadow:none; -webkit-backdrop-filter:none; backdrop-filter:none; }

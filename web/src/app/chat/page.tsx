@@ -179,7 +179,7 @@ export default function ChatPage() {
   }
 
   return (
-    <main className="site-shell flex flex-col">
+    <main className="site-shell chat-stylist flex flex-col">
 
       <div className="chat-heading"><p className="small-label">Stylese stylist</p><h1>{t("Hôm nay bạn muốn mặc gì?")}</h1><p>{t("Kể mình nghe bạn định mặc đi đâu hoặc đang thích phong cách nào nhé.")}</p></div>
 
@@ -188,7 +188,7 @@ export default function ChatPage() {
         {messages.map((msg, i) => (
           <div
             key={i}
-            className={`rounded-lg p-4 ${
+            className={`chat-message rounded-lg p-4 ${
               msg.role === "user"
                 ? "bg-brand-soft ml-16"
                 : "bg-surface border border-border mr-16"
@@ -203,7 +203,7 @@ export default function ChatPage() {
         ))}
 
         {isStreaming && (currentText || pendingOutfits.length > 0) && (
-          <div className="bg-surface border border-border mr-16 rounded-lg p-4">
+          <div className="chat-message bg-surface border border-border mr-16 rounded-lg p-4">
             <p className="text-sm font-semibold mb-1 text-ink">
               Stylese Stylist
             </p>
@@ -215,7 +215,7 @@ export default function ChatPage() {
         <div ref={endRef} />
       </div>
 
-      <div className="flex gap-2 max-w-3xl mx-auto w-full px-4 pb-8">
+      <div className="chat-composer flex gap-2 max-w-3xl mx-auto w-full px-4 pb-8">
         <label htmlFor="chat-input" className="sr-only">
           Tin nhắn cho stylist
         </label>
