@@ -90,7 +90,7 @@ export default function ResultsPage() {
 
   return (
     <main className="site-shell"><div className="results-wrap">
-      <p className="small-label">{t("Dành riêng cho bạn")}</p><h1 className="results-title">{t("Gợi ý dành cho bạn")}</h1><p className="results-description">{t("Một vài ý tưởng để bạn bắt đầu phối đồ theo cách riêng.")}</p>
+      <h1 className="results-title">{t("Gợi ý dành cho bạn")}</h1><p className="results-description">{t("Một vài ý tưởng để bạn bắt đầu phối đồ theo cách riêng.")}</p>
 
       {Object.keys(sizes).length > 0 && <p className="mb-4 text-ink">{language === "vi" ? "Size gợi ý cho outfit đầu tiên" : "Suggested sizes for the first outfit"}: {Object.entries(sizes).map(([item, size]) => `${item}: ${size}`).join(", ")}</p>}
 

@@ -37,8 +37,10 @@ export default function ChatPage() {
   const endRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    endRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, currentText]);
+    if (messages.length === 0 && !currentText && pendingOutfits.length === 0) return;
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    endRef.current?.scrollIntoView({ behavior: reducedMotion ? "instant" : "smooth" });
+  }, [messages, currentText, pendingOutfits]);
 
   const sendMessage = useCallback(async () => {
     if (!input.trim() || isStreaming) return;
@@ -181,7 +183,7 @@ export default function ChatPage() {
   return (
     <main className="site-shell chat-stylist flex flex-col">
 
-      <div className="chat-heading"><p className="small-label">Stylese stylist</p><h1>{t("Hôm nay bạn muốn mặc gì?")}</h1><p>{t("Kể mình nghe bạn định mặc đi đâu hoặc đang thích phong cách nào nhé.")}</p></div>
+      <div className="chat-heading"><h1>{t("Hôm nay bạn muốn mặc gì?")}</h1><p>{t("Kể mình nghe bạn định mặc đi đâu hoặc đang thích phong cách nào nhé.")}</p></div>
 
       <div className="flex-1 overflow-y-auto mb-4 space-y-4 max-w-3xl mx-auto w-full">
         {messages.length === 0 && !isStreaming && <div className="chat-welcome glass-panel"><p>{language === "vi" ? "Bắt đầu bằng một câu hỏi" : "Start with a question"}</p><div className="chat-suggestions">{(language === "vi" ? ["Mình nên mặc gì khi đi làm?", "Gợi ý phong cách tối giản", "Phối đồ cho buổi hẹn"] : ["What should I wear to work?", "Suggest a minimalist style", "Help me dress for a date"]).map((prompt) => <button key={prompt} type="button" className="glass-button" onClick={() => setInput(prompt)}>{prompt}</button>)}</div><small>{language === "vi" ? "Mình dùng AI để tư vấn. Tủ đồ trên thiết bị của bạn chưa tự động được chia sẻ trong cuộc trò chuyện này." : "The stylist uses an AI service; your local closet is not shared automatically."}</small></div>}

@@ -95,7 +95,7 @@ export default function QuizPage() {
 
       <div className="quiz-layout">
         <aside className="quiz-intro">
-          <p className="small-label">{t("Bắt đầu từ bạn")}</p>
+
           <h1>{t("Hiểu gu của bạn")}<br /><em>{t("một chút nhé.")}</em></h1>
           <p>{t("Kể mình nghe vài điều bạn thích để cùng tìm những gợi ý hợp gu nhé.")}</p>
           <div className="intro-note"><span>✳</span><p>{t("Không có câu trả lời đúng hay sai.")}<br />{t("Chỉ cần chọn điều khiến bạn thấy là mình.")}</p></div>
