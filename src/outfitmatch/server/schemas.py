@@ -11,6 +11,7 @@ class ChatRequest(BaseModel):
     message: str = Field(min_length=1, max_length=2000, description="User message in Vietnamese")
     conversation_id: str | None = Field(None, description="Optional session ID")
     quiz_answers: dict | None = Field(None, description="Onboarding quiz answers")
+    history: list[dict[str, str]] = Field(default_factory=list, max_length=20)
 
 
 class ItemCardDTO(BaseModel):
@@ -39,6 +40,15 @@ class OutfitCardDTO(BaseModel):
     compatibility_score: float = 0.0
 
 
+class QuizAnswersDTO(BaseModel):
+    style: list[str] = Field(default_factory=list, max_length=2)
+    occasions: list[str] = Field(default_factory=list, max_length=2)
+    favorite_colors: list[str] = Field(default_factory=list, max_length=3)
+    price_tier: str = ""
+    height_cm: int | None = Field(default=None, ge=80, le=250)
+    weight_kg: int | None = Field(default=None, ge=20, le=300)
+
+
 class RecommendRequestDTO(BaseModel):
     """POST /api/recommend — structured request."""
 
@@ -50,7 +60,7 @@ class RecommendRequestDTO(BaseModel):
     exclude_colors: list[str] = Field(default_factory=list)
     height_cm: int | None = None
     weight_kg: int | None = None
-    quiz_answers: dict | None = None
+    quiz_answers: QuizAnswersDTO | None = None
 
 
 class ItemBriefDTO(BaseModel):

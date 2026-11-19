@@ -76,6 +76,7 @@ class StylistService:
             self.processor,
             user_prompt=messages[-1]["content"],
             system_prompt=messages[0]["content"],
+            messages=messages,
             **kwargs,
         )
 
@@ -163,7 +164,7 @@ class StylistService:
             sizes: set[str] = set()
             for rec in records:
                 for it in rec.items:
-                    available = it.store.get("sizes")
+                    available = it.store.get("sizes_in_stock") or it.store.get("available_sizes")
                     if available:
                         sizes.update(str(s).upper() for s in available)
             if sizes:
@@ -190,6 +191,8 @@ class StylistService:
         from outfitmatch.stylist.validation import validate_response
 
         messages: list[dict[str, str]] = [{"role": "system", "content": self._system_prompt}]
+        if quiz_answers:
+            messages[0]["content"] += f"\nSở thích từ quiz: {quiz_answers}"
         if history:
             messages.extend(history)
         messages.append({"role": "user", "content": user_message})
@@ -199,7 +202,6 @@ class StylistService:
 
         # Pass 1: parse intent / tool call
         response = self._generate(messages, max_new_tokens=max_new_tokens)
-        yield {"type": "token", "data": response}
 
         payload = self._extract_tool_call(response)
         if payload is not None:
@@ -225,7 +227,6 @@ class StylistService:
             messages.append({"role": "tool", "content": tool_result})
 
             final_response = self._generate(messages, max_new_tokens=max_new_tokens)
-            yield {"type": "token", "data": final_response}
 
             # Validation
             valid, v_errors = self._run_validation(final_response, records, height_cm, weight_kg)
@@ -233,6 +234,7 @@ class StylistService:
                 yield {"type": "error", "data": "; ".join(v_errors)}
                 return
 
+            yield {"type": "token", "data": final_response}
             cards = self._format_outfit_cards(records)
             yield {"type": "outfit_cards", "data": cards}
         else:
@@ -241,6 +243,7 @@ class StylistService:
             if not valid:
                 yield {"type": "error", "data": "Phát hiện outfit_id không tồn tại trong phản hồi."}
                 return
+            yield {"type": "token", "data": response}
 
         yield {"type": "done"}
 

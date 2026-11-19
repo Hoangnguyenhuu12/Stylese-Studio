@@ -61,7 +61,7 @@
 
 ## Priority order (P0) for Sprint 9 academic deliverable
 
-1. **B-fs** FashionStylist V1 (3 tasks) — mới nhất, match exact schema of OutfitMatch (occasion/season/gender/style).
+1. **B-fs** FashionStylist V1 (3 tasks) — mới nhất, match exact schema of Stylese Studio (occasion/season/gender/style).
 2. **B-fa** fashion-agent-benchmark — 5 evaluators, occasion + budget logic match stylist tool contract.
 3. **B-bfcl** BFCL V4 subset — tool-calling chính.
 4. **B-ife** IFEval — instruction-following chính.

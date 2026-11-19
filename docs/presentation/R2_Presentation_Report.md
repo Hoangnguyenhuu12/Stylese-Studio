@@ -1,4 +1,4 @@
-# OutfitMatch — Báo cáo Trình bày (R2)
+# Stylese Studio — Báo cáo Trình bày (R2)
 
 **DPL302m · Nhóm 3 dev · Kiến trúc v3.1-lite (MVP 7 tuần)**
 

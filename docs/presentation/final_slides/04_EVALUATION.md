@@ -9,7 +9,7 @@
 
 ### 1.1 Vấn đề với đánh giá LLM truyền thống
 
-| Metric truyền thống | Hạn chế cho OutfitMatch |
+| Metric truyền thống | Hạn chế cho Stylese Studio |
 |---|---|
 | Eval loss / perplexity | Không đo hành vi sau generation |
 | BLEU / ROUGE | Không phù hợp hội thoại |
@@ -17,7 +17,7 @@
 | LLM-as-judge đơn điểm | Có bias, đắt, không reproducible |
 | Human eval | Chậm, không scalable |
 
-### 1.2 Nguyên tắc đánh giá OutfitMatch (4 trục)
+### 1.2 Nguyên tắc đánh giá Stylese Studio (4 trục)
 
 ```
 TRỤC 1: TOOL CORRECTNESS        ← Critical (sai = retrieval vỡ)

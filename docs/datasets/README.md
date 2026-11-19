@@ -1,4 +1,4 @@
-# OutfitMatch Dataset README
+# Stylese Studio Dataset README
 
 README này dùng để share artifact dữ liệu giữa các thành viên team. **Primary KB path hiện là graph**: catalog item nodes + `data/custom/graph/item_edges.parquet` + Qdrant `items`. Materialized `generated_outfits.parquet` chỉ còn giữ cho mục đích legacy/comparison.
 

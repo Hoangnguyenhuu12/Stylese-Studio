@@ -1,9 +1,9 @@
-# Báo cáo tổng hợp — Fine-tune Stylist Model cho OutfitMatch
+# Báo cáo tổng hợp — Fine-tune Stylist Model cho Stylese Studio
 
-**Dự án:** OutfitMatch — Body & Occasion-Aware Fashion Recommender (DPL302m)
+**Dự án:** Stylese Studio — Body & Occasion-Aware Fashion Recommender (DPL302m)
 **Phạm vi:** Tầng 2 — Conversational AI Stylist (Qwen3-VL-8B + Qwen3.5-9B + Gemma 4 12B)
 **Mục đích:** Báo cáo tổng quan phục vụ thuyết trình cuối kỳ môn Deep Learning (năm 3, ngành AI)
-**Tác giả:** Nhóm OutfitMatch · **Ngày:** 12/07/2026
+**Tác giả:** Nhóm Stylese Studio · **Ngày:** 12/07/2026
 
 > Tài liệu này là **báo cáo gốc (master)**. Chi tiết chuyên sâu nằm trong 5 báo cáo thành phần (01–05) cùng thư mục, mỗi báo cáo tương ứng 1 mảng chính của bài thuyết trình.
 
@@ -23,7 +23,7 @@
 
 ---
 
-## 1. Bối cảnh & Vị trí Stylist trong kiến trúc OutfitMatch
+## 1. Bối cảnh & Vị trí Stylist trong kiến trúc Stylese Studio
 
 ### 1.1 Vị trí trong pipeline 4 tầng (v3.1-lite)
 

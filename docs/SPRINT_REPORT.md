@@ -1,4 +1,4 @@
-# OutfitMatch — Báo cáo Tiến độ Dự án (Scrum/XP)
+# Stylese Studio — Báo cáo Tiến độ Dự án (Scrum/XP)
 
 **DPL302m · Nhóm 3 dev · Timeline mục tiêu: 7 sprint × 1 tuần**
 
@@ -12,7 +12,7 @@
 
 | Mục | Chi tiết |
 |---|---|
-| Tên dự án | OutfitMatch — AI Stylist Cá nhân hóa |
+| Tên dự án | Stylese Studio — AI Stylist Cá nhân hóa |
 | Môn học | DPL302m — Deep Learning Project |
 | Nhóm | 3 sinh viên |
 | Branch hiện tại | `Model` → merge vào `dev` theo từng sprint |

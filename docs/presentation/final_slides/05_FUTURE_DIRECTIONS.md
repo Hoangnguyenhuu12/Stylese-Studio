@@ -39,7 +39,7 @@
 | **SimPO** | Reference-free | Cần pairwise | ❌ |
 | **GRPO** ✅ | **Verifiable reward, không cần RM**, on-policy, 1 model + KL | Cần compute gõ hơn SFT | ✅ |
 
-**Lý do GRPO thắng cho OutfitMatch:**
+**Lý do GRPO thắng cho Stylese Studio:**
 - **Reward deterministic** từ 6 scorer `fashion_eval.py` → KHÔNG cần reward model tốn kém
 - **On-policy** → khắc phục distribution mismatch của DPO offline
 - **1 quantized model + KL** → vừa T4 Kaggle 16GB vừa RTX 5060 8GB local

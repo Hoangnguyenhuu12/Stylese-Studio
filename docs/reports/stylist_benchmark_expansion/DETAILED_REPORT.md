@@ -21,7 +21,7 @@ Kết luận nội bộ trước đó: **T3 Qwen3-VL-8B Thinking** là lựa ch�
 
 ## 2. Nguyên tắc chọn benchmark
 
-1. **Khớp năng lực sản phẩm:** OutfitMatch cần parse intent, hỏi lại, gọi `search_outfits`, giải thích bằng tiếng Việt và có thể dùng ảnh.
+1. **Khớp năng lực sản phẩm:** Stylese Studio cần parse intent, hỏi lại, gọi `search_outfits`, giải thích bằng tiếng Việt và có thể dùng ảnh.
 2. **Có thước đo khách quan khi có thể:** ưu tiên accuracy / pass rate / recall / AUC / MRR thay vì chỉ LLM-judge.
 3. **Tách đúng năng lực:** không gộp tool-calling, chat style, vision reasoning và fashion retrieval vào một điểm duy nhất.
 4. **So sánh công bằng 4 model:** benchmark có ảnh chỉ chạy trực tiếp cho T1/T3/T4; T2 chạy chế độ text-only hoặc OCR/caption fallback và phải ghi rõ.
@@ -41,7 +41,7 @@ Kết luận nội bộ trước đó: **T3 Qwen3-VL-8B Thinking** là lựa ch�
 - **Model phù hợp:** T1, T2, T3, T4.
 - **Độ ưu tiên:** **P0**.
 - **Vì sao cần:** gần nhất với nhiệm vụ production: model phải quyết định khi nào gọi `search_outfits`, truyền đúng enum/schema, không hallucinate tool args.
-- **Cách áp dụng cho OutfitMatch:**
+- **Cách áp dụng cho Stylese Studio:**
   - Chạy benchmark gốc để có điểm tool-calling chung.
   - Tạo thêm subset nội bộ kiểu BFCL với schema `search_outfits` và controlled vocab trong `vocab.py`.
 
@@ -66,7 +66,7 @@ Kết luận nội bộ trước đó: **T3 Qwen3-VL-8B Thinking** là lựa ch�
 - **Metric chính:** strict / loose prompt-level và instruction-level accuracy.
 - **Model phù hợp:** T1, T2, T3, T4.
 - **Độ ưu tiên:** **P0**.
-- **Vì sao cần:** OutfitMatch yêu cầu model giữ format, hỏi lại đúng khi thiếu thông tin, không phá JSON/tool schema.
+- **Vì sao cần:** Stylese Studio yêu cầu model giữ format, hỏi lại đúng khi thiếu thông tin, không phá JSON/tool schema.
 - **Cách áp dụng:** chạy IFEval gốc + thêm mini-suite tiếng Việt: giới hạn số outfit, bắt buộc nêu giá VND, không dùng item ngoài catalog.
 
 #### B2. MT-Bench / Chatbot Arena style eval
@@ -134,7 +134,7 @@ Kết luận nội bộ trước đó: **T3 Qwen3-VL-8B Thinking** là lựa ch�
 - **Metric chính:** FITB accuracy, compatibility AUC.
 - **Model phù hợp:** downstream pipeline, không chỉ stylist LoRA.
 - **Độ ưu tiên:** **P0**.
-- **Vì sao cần:** sát nhất với luận điểm OutfitMatch: outfit phải compatible, không chỉ nói hay.
+- **Vì sao cần:** sát nhất với luận điểm Stylese Studio: outfit phải compatible, không chỉ nói hay.
 - **Cách áp dụng:** dùng để đo graph retrieval / OutfitTransformer-labse / rerank, sau đó cho stylist giải thích outfit đã retrieve.
 
 #### D2. DeepFashion
@@ -259,7 +259,7 @@ model, benchmark, split, metric_name, metric_value, n_samples, date, commit_sha
 | Dataset license/access | Chậm setup | Ưu tiên benchmark có HF/GitHub public; ghi rõ nếu chỉ dùng testmini |
 | Benchmark quá nặng | Không kịp final | Chạy P0 trước, P1 sample/testmini sau |
 | Prompt tiếng Anh không phản ánh sản phẩm VN | Kết luận lệch | Thêm mini-suite tiếng Việt nội bộ cho stylist behavior |
-| Tool schema khác `search_outfits` | Điểm BFCL không phản ánh domain | Chạy cả benchmark gốc và subset schema OutfitMatch |
+| Tool schema khác `search_outfits` | Điểm BFCL không phản ánh domain | Chạy cả benchmark gốc và subset schema Stylese Studio |
 
 ---
 

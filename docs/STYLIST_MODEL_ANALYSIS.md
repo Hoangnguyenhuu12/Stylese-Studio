@@ -1,6 +1,6 @@
 # Phân tích Kiến trúc Mô hình Stylist / Conversationalist
 
-**OutfitMatch v3.1-lite · Tầng 2 — Conversational AI Stylist**
+**Stylese Studio v3.1-lite · Tầng 2 — Conversational AI Stylist**
 
 **Branch:** `feature/stylist-model-analysis`  
 **Ngày:** 14/06/2026

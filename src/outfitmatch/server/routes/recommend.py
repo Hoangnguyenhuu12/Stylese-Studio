@@ -27,7 +27,7 @@ async def recommend(req: RecommendRequestDTO) -> dict[str, Any]:
 
     quiz = None
     if req.quiz_answers:
-        quiz = QuizAnswers(**req.quiz_answers)
+        quiz = QuizAnswers(**req.quiz_answers.model_dump())
 
     request = RecommendRequest(
         occasion=req.occasion,
@@ -36,8 +36,8 @@ async def recommend(req: RecommendRequestDTO) -> dict[str, Any]:
         skin_tone=req.skin_tone,
         price_max=req.price_max,
         exclude_colors=req.exclude_colors,
-        height_cm=req.height_cm,
-        weight_kg=req.weight_kg,
+        height_cm=req.height_cm or (quiz.height_cm if quiz else None),
+        weight_kg=req.weight_kg or (quiz.weight_kg if quiz else None),
         quiz_answers=quiz,
     )
     result = recommend_outfit(request, graph=graph, stylist=stylist)

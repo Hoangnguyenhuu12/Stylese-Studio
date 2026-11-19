@@ -1,7 +1,7 @@
 # Báo cáo fine-tune QLoRA stylist và benchmark 4 mô hình
 
-**Dự án:** OutfitMatch — Body & Occasion-Aware Fashion Recommender  
-**Mục tiêu:** fine-tune stylist model tiếng Việt có khả năng parse intent, gọi `search_outfits` đúng schema, hỏi lại khi thiếu thông tin, chống hallucination và giải thích outfit dựa trên retrieval context.  
+**Dự án:** Stylese Studio — Body & Occasion-Aware Fashion Recommender
+**Mục tiêu:** fine-tune stylist model tiếng Việt có khả năng parse intent, gọi `search_outfits` đúng schema, hỏi lại khi thiếu thông tin, chống hallucination và giải thích outfit dựa trên retrieval context.
 **Kết luận cuối:** chọn **T3 — Qwen3-VL-8B Thinking QLoRA adapter** làm stylist model chính.
 
 ---
@@ -23,11 +23,11 @@ Bốn adapter QLoRA đã được huấn luyện bằng pipeline **Unsloth-only*
 | 3 | T1 Qwen3-VL-8B Instruct | `unsloth/Qwen3-VL-8B-Instruct-bnb-4bit` | 0.6027 | 0.8571 | 0.5437 | 1.0000 | 0 |
 | 4 | T4 Gemma 4 12B IT | `unsloth/gemma-4-12b-it` | 0.6255 | 0.6531 | 0.5354 | 0.9714 | 0 |
 
-**Nhận định chính:** T3 không nhất ở mọi subtask, nhưng có tổng thể ổn định nhất: loss thấp nhất, Tool F1 cao nhất, text similarity cao nhất, compliance 100%, không lỗi generate. Đây là tiêu chí phù hợp nhất với OutfitMatch vì stylist model phải làm đúng tool contract trước khi retrieval/rerank hoạt động.
+**Nhận định chính:** T3 không nhất ở mọi subtask, nhưng có tổng thể ổn định nhất: loss thấp nhất, Tool F1 cao nhất, text similarity cao nhất, compliance 100%, không lỗi generate. Đây là tiêu chí phù hợp nhất với Stylese Studio vì stylist model phải làm đúng tool contract trước khi retrieval/rerank hoạt động.
 
 ---
 
-## 2. Vai trò của stylist model trong kiến trúc OutfitMatch
+## 2. Vai trò của stylist model trong kiến trúc Stylese Studio
 
 Trong kiến trúc v3.1-lite, stylist nằm giữa user và retrieval:
 
@@ -166,7 +166,7 @@ T3 có profile tốt nhất cho production:
 - Eval loss thấp nhất.
 - Subtask `tool_calling` non-grounded tốt nhất trong nhóm Qwen/Gemma.
 
-Thinking variant có lợi thế khi phải suy luận từ tiếng Việt tự nhiên sang enum nội bộ. Tool call của OutfitMatch không chỉ là copy keyword; model phải hiểu “đi làm”, “cafe”, “dáng tam giác ngược”, “tránh màu sáng”, “ngân sách dưới 900k” rồi map sang field/schema. T3 giữ được khả năng reasoning này tốt hơn T1, nhưng vẫn không đánh đổi quá nhiều chất lượng câu trả lời.
+Thinking variant có lợi thế khi phải suy luận từ tiếng Việt tự nhiên sang enum nội bộ. Tool call của Stylese Studio không chỉ là copy keyword; model phải hiểu “đi làm”, “cafe”, “dáng tam giác ngược”, “tránh màu sáng”, “ngân sách dưới 900k” rồi map sang field/schema. T3 giữ được khả năng reasoning này tốt hơn T1, nhưng vẫn không đánh đổi quá nhiều chất lượng câu trả lời.
 
 ### 7.2. T2 Qwen3.5-9B BNB4 mạnh về tool khi prompt rõ, nhưng yếu style hơn
 
@@ -210,7 +210,7 @@ Eval loss đo next-token likelihood trung bình trên toàn eval set, còn bench
 - Trả lời prose thay vì JSON/XML.
 - Đúng ý nhưng khác reference nên text similarity thấp.
 
-Với OutfitMatch, một lỗi nhỏ trong tool-call có thể làm retrieval sai hoàn toàn. Vì vậy chọn model phải dựa trên benchmark hành vi, đặc biệt là Tool F1 và compliance.
+Với Stylese Studio, một lỗi nhỏ trong tool-call có thể làm retrieval sai hoàn toàn. Vì vậy chọn model phải dựa trên benchmark hành vi, đặc biệt là Tool F1 và compliance.
 
 ---
 
@@ -333,4 +333,4 @@ Khi tích hợp app:
 
 Quá trình fine-tune đã tạo và so sánh thành công 4 adapter QLoRA trên cùng dataset, cùng benchmark, và đã publish final adapters lên Hugging Face. **Qwen3-VL-8B Thinking** là lựa chọn production tốt nhất hiện tại vì thắng đồng thời ở Tool F1, text similarity, compliance và eval loss.
 
-Bài học quan trọng là với OutfitMatch, chất lượng stylist phải được đo bằng hành vi tool-calling/grounding chứ không chỉ eval loss hoặc độ tự nhiên ngôn ngữ. Giai đoạn tiếp theo nên tập trung vào hard-case tool data, benchmark lớn hơn, constrained decoding, parser repair và LLM-as-judge cho explanation quality.
+Bài học quan trọng là với Stylese Studio, chất lượng stylist phải được đo bằng hành vi tool-calling/grounding chứ không chỉ eval loss hoặc độ tự nhiên ngôn ngữ. Giai đoạn tiếp theo nên tập trung vào hard-case tool data, benchmark lớn hơn, constrained decoding, parser repair và LLM-as-judge cho explanation quality.

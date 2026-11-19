@@ -1,4 +1,4 @@
-# OutfitMatch — System Architecture (v3.1-lite)
+# Stylese Studio — System Architecture (v3.1-lite)
 
 > **Agents/devs: đọc file này trước khi sửa `src/`.** File này mô tả boundaries,
 > data flow, schema và trạng thái triển khai thực tế. Canonical product plan vẫn là
@@ -13,13 +13,13 @@ Kiến trúc thật trong repo hiện tại là **graph-first v3.1-lite**:
 - **Đã chạy được:** scraper VN catalog, quality gate, item semantic tagging, graph build,
   Qdrant `items` indexing helper, graph traversal retrieval, quiz rerank, size suggestion,
   retrieval/rerank pipeline smoke path.
-- **Đang là planned/stub:** Qwen3-VL model loading/fine-tuning dataset trong
-  `src/outfitmatch/stylist/model.py` và `src/outfitmatch/stylist/data.py`; Gradio UI trong
+- **Đã triển khai, cần model/GPU để kiểm tra thực tế:** Qwen3-VL model loading và inference trong
+  `src/outfitmatch/stylist/model.py`. Dataset loader trong `src/outfitmatch/stylist/data.py` và Gradio UI trong
   `src/outfitmatch/ui/gradio_app.py` vẫn là placeholder integration target.
 - **Legacy:** materialized outfit generation + Qdrant `outfits` collection còn tồn tại để so
   sánh/benchmark, không phải primary serving path.
 
-Current local artifacts verified in repo:
+Artifact snapshot từ các lần chạy trước; các file dữ liệu có thể cần được cung cấp riêng:
 
 | Artifact | Current role | Snapshot |
 |---|---|---|
@@ -44,7 +44,7 @@ Current local artifacts verified in repo:
 ┌──────────────────────────────────────────────────────────────┐
 │ TẦNG 2: CONVERSATIONAL STYLIST                               │
 │ Tool schema + hallucination/size validation implemented       │
-│ Qwen3-VL-8B + LoRA model/data are still planned stubs         │
+│ Qwen3-VL-8B + LoRA inference; dataset loader is a stub        │
 └──────────────────────────────┬───────────────────────────────┘
                                ↓
 ┌──────────────────────────────────────────────────────────────┐
@@ -88,7 +88,7 @@ seed-node filter. The canonical matching structure is `item_edges.parquet` loade
 | `src/outfitmatch/retrieval.py` | Tầng 3 search: seed filter → traversal → post-filter | ✅ No training/model loading |
 | `src/outfitmatch/stylist/tools.py` | `SEARCH_OUTFITS_TOOL` schema from `vocab.py` | ✅ Implemented |
 | `src/outfitmatch/stylist/validation.py` | Validate outfit IDs and explicit size mentions | ✅ Implemented guardrail |
-| `src/outfitmatch/stylist/model.py` | Qwen3-VL-8B + LoRA loading/inference | 🚧 `NotImplementedError` stub |
+| `src/outfitmatch/stylist/model.py` | Qwen3-VL-8B + LoRA loading/inference | ✅ Implemented; requires model and compatible GPU |
 | `src/outfitmatch/stylist/data.py` | Conversation dataset loader for LoRA SFT | 🚧 `NotImplementedError` stub |
 | `src/outfitmatch/quiz/schema.py` | Quiz answers/profile conversion | ✅ Implemented |
 | `src/outfitmatch/quiz/rerank.py` | Preference rerank scoring | ✅ Implemented |

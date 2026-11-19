@@ -193,7 +193,7 @@ T3 có **profile tốt nhất cho production** vì thắng đồng thời:
 - Eval loss thấp nhất (0.594)
 - `tool_calling` non-grounded tốt nhất Qwen/Gemma (0.857)
 
-**Lý do:** Thinking variant có lợi thế khi phải suy luận từ tiếng Việt tự nhiên sang enum nội bộ. Tool call OutfitMatch không chỉ là copy keyword — model phải hiểu "đi làm", "cafe", "dáng tam giác ngược", "tránh màu sáng", "ngân sách dưới 900k" rồi map sang field/schema.
+**Lý do:** Thinking variant có lợi thế khi phải suy luận từ tiếng Việt tự nhiên sang enum nội bộ. Tool call Stylese Studio không chỉ là copy keyword — model phải hiểu "đi làm", "cafe", "dáng tam giác ngược", "tránh màu sáng", "ngân sách dưới 900k" rồi map sang field/schema.
 
 ### 5.2 T2 — mạnh tool khi prompt rõ, yếu style hơn
 
@@ -234,7 +234,7 @@ Gemma có eval loss 0.626 (khá) và text sim 0.535 (không tệ). Cũng đạt 
 | **Tool F1** | Field/value match trong tool-call | **Đo đúng contract production** |
 | **Format compliance** | Output đúng tool schema | **Hard gate** — sai = retrieval vỡ |
 
-**Quy tắc chọn model cho OutfitMatch:**
+**Quy tắc chọn model cho Stylese Studio:**
 > Một lỗi nhỏ trong tool-call có thể làm retrieval sai hoàn toàn. Vì vậy chọn model phải dựa trên **benchmark hành vi** (Tool F1 + compliance), KHÔNG chỉ eval loss.
 
 **Ví dụ thực tế:** T4 Gemma eval loss 0.626 < T2 0.688, nhưng Tool F1 0.653 << T2 0.877. Nếu chỉ nhìn loss sẽ chọn nhầm Gemma.

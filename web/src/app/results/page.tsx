@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { API_URL } from "@/lib/api";
+import { usePreferences } from "../components/preferences";
+import { translate } from "../components/translations";
 
 type Outfit = {
   outfit_id: string;
@@ -34,11 +36,15 @@ function SkeletonCard() {
 }
 
 export default function ResultsPage() {
+  const { language } = usePreferences();
+  const t = (text: string) => translate(language, text);
   const [outfits, setOutfits] = useState<Outfit[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const [sizes, setSizes] = useState<Record<string, string>>({});
 
   useEffect(() => {
+    Promise.resolve().then(() => {
     const stored = localStorage.getItem("quiz_answers");
     if (!stored) {
       setLoading(false);
@@ -50,37 +56,43 @@ export default function ResultsPage() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        occasion: answers.occasions?.[0] || "daily",
+        occasion: answers.occasions?.[0] || "cafe_hangout",
         quiz_answers: answers,
+        height_cm: answers.height_cm || null,
+        weight_kg: answers.weight_kg || null,
       }),
     })
-      .then((r) => r.json())
+      .then((r) => { if (!r.ok) throw new Error("Recommendations unavailable"); return r.json(); })
       .then((data) => {
         setOutfits(data.outfits || []);
+        setSizes(data.suggested_sizes || {});
         setLoading(false);
       })
       .catch(() => {
         setError(true);
         setLoading(false);
       });
+    }).catch(() => { setError(true); setLoading(false); });
   }, []);
 
   if (loading) {
     return (
-      <main className="flex min-h-screen flex-col p-8">
-        <h1 className="text-2xl font-bold mb-6 text-ink">Your Outfits</h1>
+      <main className="site-shell"><div className="results-wrap">
+        <h1 className="results-title">{t("Gợi ý dành cho bạn")}</h1>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {[0, 1, 2].map((i) => (
             <SkeletonCard key={i} />
           ))}
         </div>
-      </main>
+      </div></main>
     );
   }
 
   return (
-    <main className="flex min-h-screen flex-col p-8">
-      <h1 className="text-2xl font-bold mb-6 text-ink">Your Outfits</h1>
+    <main className="site-shell"><div className="results-wrap">
+      <p className="small-label">{t("Dành riêng cho bạn")}</p><h1 className="results-title">{t("Gợi ý dành cho bạn")}</h1><p className="results-description">{t("Một vài ý tưởng để bạn bắt đầu phối đồ theo cách riêng.")}</p>
+
+      {Object.keys(sizes).length > 0 && <p className="mb-4 text-ink">{language === "vi" ? "Size gợi ý cho outfit đầu tiên" : "Suggested sizes for the first outfit"}: {Object.entries(sizes).map(([item, size]) => `${item}: ${size}`).join(", ")}</p>}
 
       {error ? (
         <div
@@ -88,25 +100,25 @@ export default function ResultsPage() {
           className="rounded-lg border border-border bg-brand-soft p-4 text-ink"
         >
           <p className="font-medium mb-2">
-            Không thể tải gợi ý. Vui lòng thử lại sau.
+            {t("Mình chưa tải được gợi ý. Bạn thử lại sau nhé.")}
           </p>
           <Link
             href="/quiz"
             className="text-brand underline font-medium"
           >
-            Quay lại quiz
+            {t("Quay lại quiz")}
           </Link>
         </div>
       ) : outfits.length === 0 ? (
         <div className="rounded-lg border border-border bg-surface p-6 text-center">
           <p className="text-muted mb-3">
-            Chưa có outfit nào được gợi ý. Hoàn thành quiz để nhận đề xuất.
+            {t("Chưa có gợi ý nào. Bạn làm quiz để mình hiểu gu hơn nhé.")}
           </p>
           <Link
             href="/quiz"
-            className="inline-block rounded-lg bg-brand px-6 py-3 text-brand-ink font-medium hover:opacity-90 transition-opacity"
+            className="glass-primary"
           >
-            Làm quiz ngay
+            {t("Làm quiz ngay")}
           </Link>
         </div>
       ) : (
@@ -123,7 +135,7 @@ export default function ResultsPage() {
                 {outfit.explanation_vi}
               </p>
               <p className="text-sm font-semibold mb-3 text-ink">
-                Tổng: {outfit.price_total_vnd.toLocaleString()} VND
+                {language === "vi" ? "Tổng" : "Total"}: {outfit.price_total_vnd.toLocaleString()} VND
               </p>
               <div className="mt-2 space-y-2">
                 {outfit.items.map((item) => (
@@ -157,6 +169,6 @@ export default function ResultsPage() {
           ))}
         </div>
       )}
-    </main>
+    </div></main>
   );
 }

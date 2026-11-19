@@ -1,6 +1,10 @@
-# OutfitMatch — AI Stylist v3.1-lite
+# Stylese Studio — AI Stylist v3.1-lite
+
+**Stylese** là tên thương hiệu; **Stylese Studio** là tên ứng dụng. Các định danh kỹ thuật hiện có như package Python `outfitmatch`, URL repository và tên model vẫn được giữ để các lệnh và tài nguyên hiện tại hoạt động.
 
 AI Stylist cá nhân hoá phong cách châu Á cho thị trường Việt Nam. Kiến trúc **v3.1-lite 4 tầng**, trong đó **graph KB là đường dẫn chính**.
+
+Giao diện gồm Home, Explore, Stylist, Closet và Profile. Closet lưu món đồ và ảnh trong trình duyệt trên thiết bị hiện tại; chưa có tài khoản hay đồng bộ. Home tính số tổ hợp cơ bản theo công thức số áo × số quần/chân váy + số váy liền, chưa đánh giá độ phù hợp. Explore hiện giới thiệu các phong cách; ảnh và sản phẩm thực cần catalog. Stylist cần model và graph; tủ đồ cục bộ chưa tự động được gửi tới AI. Mục tin tức chưa kết nối nguồn dữ liệu.
 
 ```text
 Tầng 1: Graph KB Builder  catalog → item tags/embeddings → sparse item-compat graph
@@ -27,8 +31,8 @@ Tầng 4: Personalization   Quiz 5 câu → preference rerank + size suggestion
 ### 1. Clone + Cài đặt
 
 ```bash
-git clone https://github.com/Lendo-Stylix/fashion_match.git
-cd fashion_match
+git clone https://github.com/Hoangnguyenhuu12/Stylese-Finder.git
+cd Stylese-Finder
 
 # Python backend
 uv sync --group dev
@@ -38,6 +42,8 @@ cd web
 npm install
 cd ..
 ```
+
+Ứng dụng cần `data/custom/catalog/catalog_metadata.parquet`, `data/custom/catalog/item_store_links.parquet` và `data/custom/graph/item_edges.parquet` từ cùng một snapshot. Nếu thiếu catalog hoặc graph, API vẫn khởi động nhưng chức năng gợi ý và stylist không khả dụng; kiểm tra `/api/health`. Dataset được dự án tham chiếu tại `Nhat-Quang/VN_Fashion_data` có thể yêu cầu quyền truy cập.
 
 ### 2. Tải model (cần GPU)
 
@@ -79,11 +85,11 @@ make lint           # ruff + mypy
 | Tầng | Module | Trạng thái |
 |---|---|---|
 | **Tầng 1** | KB Builder — catalog, tagging, graph | ✅ 5,618 items, 316,559 edges |
-| **Tầng 2** | Stylist — Qwen3-VL-8B + LoRA + SSE | ✅ 20/20 tests |
+| **Tầng 2** | Stylist — Qwen3-VL-8B + LoRA + SSE | 🟡 Cần model và GPU để kiểm tra thực tế |
 | **Tầng 3** | Retrieval — Qdrant seed filter + traversal | ✅ Graph-first |
 | **Tầng 4** | Personalization — Quiz + rerank + sizing | ✅ Rule-based |
-| **Web UI** | Next.js 16 + TypeScript + Tailwind | ✅ Build passing |
-| **Backend** | FastAPI + SSE + OpenAPI | ✅ 29/29 E2E tests |
+| **Web UI** | Next.js 16 + TypeScript + Tailwind | ✅ Đã triển khai |
+| **Backend** | FastAPI + SSE + OpenAPI | 🟡 Cần catalog để kiểm tra đầu-cuối |
 
 ---
 
@@ -145,7 +151,7 @@ make format          # ruff format + fix
 | Graph edges | 316,559 |
 | Materialized outfits | 1,000 |
 | Item-tag invalid rows | 0 |
-| Test coverage (backend) | 29/29 tests passing |
+| Test coverage (backend) | Chạy test trên môi trường và dữ liệu của bạn để xác nhận |
 | Coherence violations | 0 |
 | FITB Recall@5 | ~0.98 |
 

@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  devIndicators: false,
   images: {
     // Allow backend-served / remote product images (localhost dev + https).
     remotePatterns: [

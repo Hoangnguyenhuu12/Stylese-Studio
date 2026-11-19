@@ -15,7 +15,7 @@ pretty_name: VN Fashion Data
 
 # VN Fashion Data
 
-Dataset snapshot for the **OutfitMatch** project (body & occasion-aware fashion recommender).
+Dataset snapshot for the **Stylese Studio** project (body & occasion-aware fashion recommender).
 
 This repository mirrors the **contents of the project's local `data/` folder** — the
 *dataset*, not the codebase. To use it inside the project, copy this repo's files into:

@@ -3,7 +3,7 @@
 Date: 2026-06-23
 
 ## Goal
-Build a reproducible pipeline that generates retrieval-grounded stylist SFT data from the real OutfitMatch catalog/retrieval runtime, while locking the tool-call wire format so fine-tune data and inference-time parsing never drift.
+Build a reproducible pipeline that generates retrieval-grounded stylist SFT data from the real Stylese Studio catalog/retrieval runtime, while locking the tool-call wire format so fine-tune data and inference-time parsing never drift.
 
 ## Canonical tool-call contract
 

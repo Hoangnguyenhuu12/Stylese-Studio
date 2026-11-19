@@ -142,6 +142,7 @@ def generate_stylist_response(
     max_new_tokens: int = 512,
     temperature: float = 0.7,
     top_p: float = 0.9,
+    messages: list[dict[str, str]] | None = None,
 ) -> str:
     """Generate the stylist response for one user prompt.
 
@@ -162,7 +163,7 @@ def generate_stylist_response(
     """
     import torch
 
-    messages = [
+    messages = messages or [
         {"role": "system", "content": system_prompt},
         {"role": "user", "content": user_prompt},
     ]

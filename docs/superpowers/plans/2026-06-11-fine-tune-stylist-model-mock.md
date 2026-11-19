@@ -5,7 +5,7 @@ Date: 2026-06-11
 ## Goal
 
 Prepare a reproducible dry-run scaffold for the next task: compare and **QLoRA fine-tune**
-three local Stylist candidates for OutfitMatch using the same data, Kaggle GPU execution,
+three local Stylist candidates for Stylese Studio using the same data, Kaggle GPU execution,
 and Llama Turbo Quant / llama.cpp GGUF inference driver.
 
 Target candidates:

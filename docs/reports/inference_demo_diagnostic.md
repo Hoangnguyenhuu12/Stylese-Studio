@@ -143,7 +143,7 @@ cần thư giãn budget trong prompt/system hoặc thêm re-rank theo price tier
 > **Hallucination detection phải tách bạch model vs pipeline.** Khi output sai, lỗi thường ở
 > downstream (retrieval filter, data quality, display) chứ không phải model. Trong case này,
 > model T3 + LoRA hoạt động hoàn hảo (tool_call đúng schema, enum đúng vocab) — bug nằm ở
-> `price_max` filter quá hẹp + store-level style tags. Đây là lý do benchmark OutfitMatch đo
+> `price_max` filter quá hẹp + store-level style tags. Đây là lý do benchmark Stylese Studio đo
 > **Tool F1** (model behavior) tách biệt với **retrieval quality** (downstream).
 
 ---

@@ -1,4 +1,4 @@
-# Slide Deck Outline — Thuyết trình OutfitMatch Stylist Model
+# Slide Deck Outline — Thuyết trình Stylese Studio Stylist Model
 
 **Môn:** Deep Learning (DPL302m) · **Thời lượng:** ~25 phút + 5–10 phút Q&A
 **Focus:** Fine-tune stylist model, xử lý dữ liệu, so sánh kiến trúc, tiềm năng tương lai
@@ -16,7 +16,7 @@
 - Nhóm 3 dev · DPL302m · Branch `feat/benchmark`
 - 1 câu hook: *"Làm sao biến một LLM 8B thành stylist tư vấn outfit cá nhân hóa, gọi tool đúng schema, không bịa sản phẩm — chạy trên GPU 8GB?"*
 
-#### Slide 2 — Bài toán OutfitMatch (1)
+#### Slide 2 — Bài toán Stylese Studio (1)
 - **Input:** text + (optional) ảnh + quiz 5 câu
 - **Output:** Top 3–5 outfit + giải thích tiếng Việt + link mua store VN
 - Sơ đồ pipeline 4 tầng (Tầng 1 KB → **Tầng 2 Stylist (focus)** → Tầng 3 Retrieval → Tầng 4 Personalization)

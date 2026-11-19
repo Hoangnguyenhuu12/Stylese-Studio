@@ -1,9 +1,9 @@
-# OutfitMatch — Báo cáo Cấu trúc Project
+# Stylese Studio — Báo cáo Cấu trúc Project
 
 > Mục tiêu của file này: giúp một thành viên mới hiểu **repo đang có gì, luồng nào là chính,
 > folder nào để làm gì, file nào là source-of-truth**, và phần nào vẫn là planned/stub.
 
-OutfitMatch hiện dùng kiến trúc **v3.1-lite graph-first**. Đường dẫn production/MVP chính không
+Stylese Studio hiện dùng kiến trúc **v3.1-lite graph-first**. Đường dẫn production/MVP chính không
 phải là vector-search outfit đã materialize sẵn, mà là:
 
 ```text
@@ -31,7 +31,7 @@ Materialized outfit files và Qdrant `outfits` vẫn còn trong repo, nhưng hi�
 | `src/outfitmatch/retrieval.py` | Tầng 3 — search_outfits graph retrieval | ✅ Implemented |
 | `src/outfitmatch/quiz/` | Tầng 4 — quiz profile/rerank/sizing | ✅ Implemented |
 | `src/outfitmatch/pipeline.py` | Request/result orchestration | ✅ Retrieval/rerank path implemented; Qwen explanation deferred |
-| `src/outfitmatch/stylist/` | Tầng 2 — tool schema, validation, Qwen model/data | 🟡 Validation/tool done; model/data stubs |
+| `src/outfitmatch/stylist/` | Tầng 2 — tool schema, validation, Qwen model/data | 🟡 Model inference implemented; dataset loader remains a stub |
 | `src/outfitmatch/ui/` | Gradio app | 🚧 Placeholder |
 | `scripts/data/scrape/` | Catalog collection pipeline | ✅ Implemented with batch quality gate |
 | `scripts/data/kb/` | Build/tag/audit/eval CLIs | ✅ Implemented for graph path + legacy helpers |

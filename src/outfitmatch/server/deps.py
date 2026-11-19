@@ -7,7 +7,7 @@ from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 from typing import Any
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 
 logger = logging.getLogger(__name__)
 
@@ -30,19 +30,27 @@ async def lifespan(app_obj: FastAPI) -> AsyncGenerator[None]:
     from scripts.data.scrape.base import CATALOG_DIR
 
     from outfitmatch.kb.catalog import load_catalog_items
-    from outfitmatch.kb.graph_store import load_graph
+    from outfitmatch.kb.graph_store import EDGES_PARQUET, load_graph
 
-    items = load_catalog_items(
-        CATALOG_DIR / "catalog_metadata.parquet",
-        CATALOG_DIR / "item_store_links.parquet",
-    )
-    _graph = load_graph(items=items)
-    logger.info("Graph loaded: %d items", len(items))
+    try:
+        if not EDGES_PARQUET.is_file():
+            raise FileNotFoundError(f"Graph edges missing: {EDGES_PARQUET}")
+        items = load_catalog_items(
+            CATALOG_DIR / "catalog_metadata.parquet",
+            CATALOG_DIR / "item_store_links.parquet",
+        )
+        _graph = load_graph(items=items)
+        logger.info("Graph loaded: %d items", len(items))
+    except (FileNotFoundError, OSError):
+        _graph = None
+        logger.exception("Catalog or graph data unavailable; recommendations disabled")
 
     # Load model + processor (GPU, optional)
     try:
         from outfitmatch.stylist.model import load_stylist_model
 
+        if _graph is None:
+            raise RuntimeError("Graph unavailable")
         model, processor = load_stylist_model()
         _model = model
         _processor = processor
@@ -62,7 +70,7 @@ async def lifespan(app_obj: FastAPI) -> AsyncGenerator[None]:
 def get_graph() -> Any:
     """Dependency: retrieve the shared OutfitGraph."""
     if _graph is None:
-        raise RuntimeError("Graph not loaded. Has lifespan started?")
+        raise HTTPException(status_code=503, detail="Catalog or graph data unavailable")
     return _graph
 
 

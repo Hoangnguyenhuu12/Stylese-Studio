@@ -1,4 +1,4 @@
-# OutfitMatch — Hướng dẫn Cài đặt & Chạy Web UI
+# Stylese Studio — Hướng dẫn Cài đặt & Chạy Web UI
 
 > **Dành cho:** Co-worker clone repo từ GitHub và chạy web UI trên máy local.
 > **Cập nhật:** 2026-07-14 · **Branch:** `Model` (hoặc `feat/benchmark`)
@@ -22,8 +22,8 @@
 ## 1. Clone repo
 
 ```bash
-git clone https://github.com/Lendo-Stylix/fashion_match.git
-cd fashion_match
+git clone https://github.com/Hoangnguyenhuu12/Stylese-Finder.git
+cd Stylese-Finder
 ```
 
 > **Lưu ý:** Repo đã chuyển từ `vominhnhatquang/fashion_match_project` sang `Lendo-Stylix/fashion_match`.
@@ -94,7 +94,7 @@ Mở **2 terminal** riêng biệt:
 ### Terminal 1 — Backend (FastAPI)
 
 ```bash
-cd fashion_match
+cd Stylese-Finder
 make serve
 ```
 
@@ -109,7 +109,7 @@ Stylist model: ✅ loaded (có GPU) / ⚠️ unavailable (không GPU)
 ### Terminal 2 — Frontend (Next.js)
 
 ```bash
-cd fashion_match
+cd Stylese-Finder
 make web-dev
 ```
 
@@ -271,4 +271,4 @@ fashion_match/
 | Model/Stylist | Đình Lộc |
 | Retrieval/API/UI | Hữu Hoàng |
 
-Repo: https://github.com/Lendo-Stylix/fashion_match
+Repo: https://github.com/Hoangnguyenhuu12/Stylese-Finder

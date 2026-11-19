@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
-import Link from "next/link";
 import { API_URL } from "@/lib/api";
+import { usePreferences } from "../components/preferences";
+import { translate } from "../components/translations";
 
 type OutfitCard = {
   outfit_id: string;
@@ -26,6 +27,8 @@ type ChatMessage = {
 };
 
 export default function ChatPage() {
+  const { language } = usePreferences();
+  const t = (text: string) => translate(language, text);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
@@ -61,9 +64,10 @@ export default function ChatPage() {
       const resp = await fetch(`${API_URL}/api/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: userMsg }),
+        body: JSON.stringify({ message: userMsg, history: messages.slice(-20).map((m) => ({ role: m.role === "bot" ? "assistant" : "user", content: m.text })), quiz_answers: JSON.parse(localStorage.getItem("quiz_answers") || "null") }),
       });
 
+      if (!resp.ok) throw new Error(resp.status === 503 ? "STYLIST_UNAVAILABLE" : `HTTP ${resp.status}`);
       if (!resp.body) throw new Error("No response body");
 
       const reader = resp.body.getReader();
@@ -76,7 +80,7 @@ export default function ChatPage() {
         buffer += decoder.decode(value, { stream: true });
 
         // Parse SSE: each event is "event:type\ndata:payload\n\n"
-        const parts = buffer.split("\n\n");
+        const parts = buffer.split(/\r?\n\r?\n/);
         buffer = parts.pop() || ""; // keep incomplete chunk
 
         for (const part of parts) {
@@ -89,7 +93,7 @@ export default function ChatPage() {
           }
 
           if (eventType === "token") {
-            botText += data;
+            botText += JSON.parse(data);
             scheduleFlush();
           } else if (eventType === "outfit_cards") {
             try {
@@ -101,7 +105,7 @@ export default function ChatPage() {
               /* ignore parse errors */
             }
           } else if (eventType === "error") {
-            botText += "\n[Error: " + data + "]";
+            botText += "\n[Error: " + JSON.parse(data) + "]";
             setCurrentText(botText);
           } else if (eventType === "done") {
             // stream complete
@@ -123,7 +127,7 @@ export default function ChatPage() {
         ...prev,
         {
           role: "bot",
-          text: "Xin lỗi, đã có lỗi xảy ra. Vui lòng thử lại.",
+          text: err instanceof Error && err.message === "STYLIST_UNAVAILABLE" ? (language === "vi" ? "Mình chưa sẵn sàng tư vấn vì mô hình và dữ liệu chưa được kết nối. Bạn quay lại sau nhé." : "Stylist is unavailable until the model and data are connected.") : translate(language, "Mình gặp chút trục trặc rồi. Bạn thử lại nhé."),
         },
       ]);
     } finally {
@@ -132,7 +136,7 @@ export default function ChatPage() {
       setCurrentText("");
       setPendingOutfits([]);
     }
-  }, [input, isStreaming]);
+  }, [input, isStreaming, messages, language]);
 
   function renderOutfitCard(card: OutfitCard) {
     return (
@@ -143,7 +147,7 @@ export default function ChatPage() {
         <p className="font-bold text-lg text-ink">{card.outfit_id}</p>
         <p className="text-sm text-muted mb-2">{card.explanation_vi}</p>
         <p className="text-sm font-semibold text-ink">
-          Tổng: {card.price_total_vnd.toLocaleString()} VND
+          {language === "vi" ? "Tổng" : "Total"}: {card.price_total_vnd.toLocaleString()} VND
         </p>
         <div className="grid grid-cols-2 gap-2 mt-2">
           {card.items.map((item) => (
@@ -175,15 +179,12 @@ export default function ChatPage() {
   }
 
   return (
-    <main className="flex min-h-screen flex-col p-4 md:p-8">
-      <nav className="flex items-center gap-4 mb-4">
-        <Link href="/" className="text-sm text-brand hover:underline">
-          Home
-        </Link>
-        <h1 className="text-2xl font-bold text-ink">Chat with Stylist</h1>
-      </nav>
+    <main className="site-shell flex flex-col">
+
+      <div className="chat-heading"><p className="small-label">Stylese stylist</p><h1>{t("Hôm nay bạn muốn mặc gì?")}</h1><p>{t("Kể mình nghe bạn định mặc đi đâu hoặc đang thích phong cách nào nhé.")}</p></div>
 
       <div className="flex-1 overflow-y-auto mb-4 space-y-4 max-w-3xl mx-auto w-full">
+        {messages.length === 0 && !isStreaming && <div className="chat-welcome glass-panel"><p>{language === "vi" ? "Bắt đầu bằng một câu hỏi" : "Start with a question"}</p><div className="chat-suggestions">{(language === "vi" ? ["Mình nên mặc gì khi đi làm?", "Gợi ý phong cách tối giản", "Phối đồ cho buổi hẹn"] : ["What should I wear to work?", "Suggest a minimalist style", "Help me dress for a date"]).map((prompt) => <button key={prompt} type="button" className="glass-button" onClick={() => setInput(prompt)}>{prompt}</button>)}</div><small>{language === "vi" ? "Mình dùng AI để tư vấn. Tủ đồ trên thiết bị của bạn chưa tự động được chia sẻ trong cuộc trò chuyện này." : "The stylist uses an AI service; your local closet is not shared automatically."}</small></div>}
         {messages.map((msg, i) => (
           <div
             key={i}
@@ -194,7 +195,7 @@ export default function ChatPage() {
             }`}
           >
             <p className="text-sm font-semibold mb-1 text-ink">
-              {msg.role === "user" ? "You" : "OutfitMatch Stylist"}
+              {msg.role === "user" ? t("Bạn") : "Stylese Stylist"}
             </p>
             <p className="whitespace-pre-wrap text-ink">{msg.text}</p>
             {msg.outfits?.map((card) => renderOutfitCard(card))}
@@ -204,7 +205,7 @@ export default function ChatPage() {
         {isStreaming && (currentText || pendingOutfits.length > 0) && (
           <div className="bg-surface border border-border mr-16 rounded-lg p-4">
             <p className="text-sm font-semibold mb-1 text-ink">
-              OutfitMatch Stylist
+              Stylese Stylist
             </p>
             <p className="whitespace-pre-wrap text-ink">{currentText}</p>
             {pendingOutfits.map((card) => renderOutfitCard(card))}
@@ -214,7 +215,7 @@ export default function ChatPage() {
         <div ref={endRef} />
       </div>
 
-      <div className="flex gap-2 max-w-3xl mx-auto w-full">
+      <div className="flex gap-2 max-w-3xl mx-auto w-full px-4 pb-8">
         <label htmlFor="chat-input" className="sr-only">
           Tin nhắn cho stylist
         </label>
@@ -223,17 +224,17 @@ export default function ChatPage() {
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+          onKeyDown={(e) => { if (e.key === "Enter" && !e.nativeEvent.isComposing && e.keyCode !== 229) sendMessage(); }}
           disabled={isStreaming}
-          placeholder="Hỏi về trang phục, phong cách, dịp đi..."
-          className="flex-1 rounded-lg border border-border bg-surface px-4 py-2 text-ink placeholder:text-muted focus:ring-2 focus:ring-brand disabled:opacity-50"
+          placeholder={t("Hỏi về trang phục, phong cách, dịp đi...")}
+          className="form-input flex-1 disabled:opacity-50"
         />
         <button
           onClick={sendMessage}
           disabled={isStreaming || !input.trim()}
-          className="rounded-lg bg-brand px-6 py-2 text-brand-ink font-medium hover:opacity-90 disabled:opacity-50 transition-opacity"
+          className="glass-primary disabled:opacity-50"
         >
-          Send
+          {t("Gửi")}
         </button>
       </div>
     </main>

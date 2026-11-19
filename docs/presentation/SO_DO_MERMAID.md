@@ -1,4 +1,4 @@
-# OutfitMatch — Sơ đồ Mermaid v3.1-lite (Thuyết trình)
+# Stylese Studio — Sơ đồ Mermaid v3.1-lite (Thuyết trình)
 
 > Mỗi sơ đồ render được trực tiếp trên GitHub, VS Code (Markdown Preview Mermaid),
 > hoặc dán vào <https://mermaid.live> để xuất PNG/SVG đưa vào slide.

@@ -93,6 +93,8 @@ class OutfitGraph:
         self._weights: dict[tuple[str, str], float] = {}
 
         for edge in edges:
+            if edge.src_id not in self._items or edge.dst_id not in self._items:
+                continue
             self._adj[edge.src_id][edge.dst_category].append((edge.dst_id, edge.weight))
             self._adj[edge.dst_id][edge.src_category].append((edge.src_id, edge.weight))
             self._weights[(edge.src_id, edge.dst_id)] = edge.weight
