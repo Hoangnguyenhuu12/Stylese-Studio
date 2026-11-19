@@ -1,34 +1,42 @@
-# Stylese Studio — AI Stylist v3.1-lite
+# Stylese Studio
 
-**Stylese** là tên thương hiệu; **Stylese Studio** là tên ứng dụng. Các định danh kỹ thuật hiện có như package Python `outfitmatch`, URL repository và tên model vẫn được giữ để các lệnh và tài nguyên hiện tại hoạt động.
+**An AI stylist and fashion recommendation project for Vietnam, inspired by Asian fashion.**
 
-AI Stylist cá nhân hoá phong cách châu Á cho thị trường Việt Nam. Kiến trúc **v3.1-lite 4 tầng**, trong đó **graph KB là đường dẫn chính**.
+Stylese Studio brings together style discovery, a personal wardrobe, and an AI stylist. The project uses a four-layer architecture built around a graph-based knowledge base.
 
-Giao diện gồm Home, Explore, Stylist, Closet và Profile. Closet lưu món đồ và ảnh trong trình duyệt trên thiết bị hiện tại; chưa có tài khoản hay đồng bộ. Home tính số tổ hợp cơ bản theo công thức số áo × số quần/chân váy + số váy liền, chưa đánh giá độ phù hợp. Explore hiện giới thiệu các phong cách; ảnh và sản phẩm thực cần catalog. Stylist cần model và graph; tủ đồ cục bộ chưa tự động được gửi tới AI. Mục tin tức chưa kết nối nguồn dữ liệu.
+Stylese is the brand name; Stylese Studio is the application name. Existing technical identifiers, including the `outfitmatch` Python package and model names, are unchanged.
 
-```text
-Tầng 1: Graph KB Builder  catalog → item tags/embeddings → sparse item-compat graph
-Tầng 2: Stylist           Qwen3-VL-8B + LoRA + tool-calling (SSE streaming)
-Tầng 3: Retrieval         Qdrant `items` seed filter + graph traversal + post-filter
-Tầng 4: Personalization   Quiz 5 câu → preference rerank + size suggestion
-```
+## What is available
 
-> Canonical plan: [`Kien_truc_v3.1.md`](Kien_truc_v3.1.md) · Architecture: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
+- **Home:** View wardrobe counts and a basic combination count (tops × bottoms plus dresses). This count does not assess whether items match.
+- **Explore:** Browse style directions. Product images and listings require the catalog.
+- **Stylist:** Chat about styling. The AI service requires the model and graph data; the local wardrobe is not sent to the AI automatically.
+- **Closet:** Organize items and photos in folders. Data stays in this browser on this device; accounts and cross-device sync are not yet available.
+- **Profile:** Save style preferences and complete the onboarding quiz. The news section does not yet have a connected source.
 
----
+The recommendation pipeline has four layers:
 
-## 🚀 Quick Start (Chạy Web UI)
+| Layer | Purpose |
+| --- | --- |
+| 1. Graph knowledge base | Turn catalog items, tags, and embeddings into a sparse item-compatibility graph. |
+| 2. Stylist | Use Qwen3-VL-8B with a LoRA adapter and tool calling, with SSE streaming. |
+| 3. Retrieval | Filter Qdrant `items`, traverse the graph, and apply post-filters. |
+| 4. Personalization | Use a five-question quiz for preference reranking and size suggestions. |
 
-### Yêu cầu
+See the [architecture and roadmap](Kien_truc_v3.1.md) and [system architecture](docs/ARCHITECTURE.md) for details.
 
-| Thành phần | Version | Ghi chú |
-|---|---|---|
-| Python | **3.13** | Dùng `.python-version` |
-| Node.js | **≥20.9** | Tested on 26.5.0 |
-| GPU (tùy chọn) | NVIDIA 8GB+ VRAM | Cần cho stylist chat; không có GPU → chat trả 503, recommend dùng deterministic path |
-| Qdrant (tùy chọn) | Docker | Cần cho seed filter; không có → fallback graph scan |
+## Quick start
 
-### 1. Clone + Cài đặt
+### Requirements
+
+| Component | Version or requirement | Notes |
+| --- | --- | --- |
+| Python | **3.13** | See `.python-version`. |
+| Node.js | **20.9 or later** | Tested on 26.5.0. |
+| GPU, optional | NVIDIA GPU with at least 8 GB VRAM | Required for the stylist chat model. Without it, chat returns 503 and recommendations use the deterministic path. |
+| Qdrant, optional | Docker | Used for seed filtering; the system falls back to a graph scan when unavailable. |
+
+### 1. Clone and install
 
 ```bash
 git clone https://github.com/Hoangnguyenhuu12/Stylese-Studio.git
@@ -43,138 +51,128 @@ npm install
 cd ..
 ```
 
-Ứng dụng cần `data/custom/catalog/catalog_metadata.parquet`, `data/custom/catalog/item_store_links.parquet` và `data/custom/graph/item_edges.parquet` từ cùng một snapshot. Nếu thiếu catalog hoặc graph, API vẫn khởi động nhưng chức năng gợi ý và stylist không khả dụng; kiểm tra `/api/health`. Dataset được dự án tham chiếu tại `Nhat-Quang/VN_Fashion_data` có thể yêu cầu quyền truy cập.
+The application requires `data/custom/catalog/catalog_metadata.parquet`, `data/custom/catalog/item_store_links.parquet`, and `data/custom/graph/item_edges.parquet` from the same snapshot. Without the catalog or graph, the API can start, but recommendations and the stylist are unavailable. Check `/api/health` for status. The referenced dataset, `Nhat-Quang/VN_Fashion_data`, may require access permission.
 
-### 2. Tải model (cần GPU)
+### 2. Download the model
+
+This step requires an NVIDIA GPU. The model uses bnb-4bit quantization and approximately 6.8 GB VRAM.
 
 ```bash
-# Tải Qwen3-VL-8B-Thinking bnb-4bit + LoRA adapter về D:/Models
+# Download Qwen3-VL-8B-Thinking bnb-4bit and the LoRA adapter to D:/Models
 uv run python scripts/setup_models.py --base --adapters
 ```
 
-> **Lưu ý:** Model dùng bnb-4bit quantization (~6.8 GB VRAM). Chỉ chạy được trên GPU NVIDIA.
-> Nếu không có GPU, bỏ qua bước này — server sẽ chạy nhưng stylist unavailable.
+You can skip this step without a GPU; the server will run, but the stylist will be unavailable.
 
-### 3. Chạy Web UI
+### 3. Start the application
 
 ```bash
-# Terminal 1: Backend (FastAPI)
+# Terminal 1: FastAPI backend
 make serve
 
-# Terminal 2: Frontend (Next.js)
+# Terminal 2: Next.js frontend
 make web-dev
 ```
 
-Truy cập:
-- **Frontend:** http://localhost:3000
-- **Backend API docs:** http://localhost:8000/docs
-- **OpenAPI schema:** http://localhost:8000/openapi.json
+- Frontend: [http://localhost:3000](http://localhost:3000)
+- Backend API documentation: [http://localhost:8000/docs](http://localhost:8000/docs)
+- OpenAPI schema: [http://localhost:8000/openapi.json](http://localhost:8000/openapi.json)
 
-### 4. Chạy Test
+### 4. Run checks
 
 ```bash
-make test-fast      # pytest nhanh (không coverage)
-make test           # pytest + coverage
-make lint           # ruff + mypy
+make test-fast      # Fast pytest suite without coverage
+make test           # Pytest with coverage
+make lint           # Ruff and mypy
 ```
 
----
+## Architecture and status
 
-## 🏗️ Kiến trúc
+| Layer | Module | Status |
+| --- | --- | --- |
+| 1 | Knowledge base builder: catalog, tagging, and graph | 5,618 items and 316,559 edges in the recorded snapshot |
+| 2 | Stylist: Qwen3-VL-8B, LoRA, and SSE | Requires the model and a GPU for live verification |
+| 3 | Retrieval: Qdrant seed filtering and graph traversal | Graph-first |
+| 4 | Personalization: quiz, reranking, and sizing | Rule-based |
+| Web UI | Next.js 16, TypeScript, and Tailwind CSS | Implemented |
+| Backend | FastAPI, SSE, and OpenAPI | Requires the catalog for end-to-end verification |
 
-| Tầng | Module | Trạng thái |
-|---|---|---|
-| **Tầng 1** | KB Builder — catalog, tagging, graph | ✅ 5,618 items, 316,559 edges |
-| **Tầng 2** | Stylist — Qwen3-VL-8B + LoRA + SSE | 🟡 Cần model và GPU để kiểm tra thực tế |
-| **Tầng 3** | Retrieval — Qdrant seed filter + traversal | ✅ Graph-first |
-| **Tầng 4** | Personalization — Quiz + rerank + sizing | ✅ Rule-based |
-| **Web UI** | Next.js 16 + TypeScript + Tailwind | ✅ Đã triển khai |
-| **Backend** | FastAPI + SSE + OpenAPI | 🟡 Cần catalog để kiểm tra đầu-cuối |
-
----
-
-## 📁 Cấu trúc source
+## Project structure
 
 ```text
 src/outfitmatch/
-  vocab.py          # Controlled vocabulary — single source of truth
-  kb/               # Tầng 1: catalog/schema/tagging/graph/traversal/eval
-  retrieval.py      # Tầng 3: seed filter + traversal + post-filter
-  stylist/          # Tầng 2: model, service, tools, validation
-  server/           # FastAPI backend: routes, deps, app, schemas
-  quiz/             # Tầng 4: onboarding quiz + rerank + size suggestion
-  metrics/          # FITB/Compat AUC + graph FITB recall
-  pipeline.py       # RecommendRequest → retrieval/rerank/size suggestion
+  vocab.py          # Controlled vocabulary: single source of truth
+  kb/               # Layer 1: catalog, schema, tagging, graph, traversal, evaluation
+  retrieval.py      # Layer 3: seed filtering, traversal, and post-filtering
+  stylist/          # Layer 2: model, service, tools, and validation
+  server/           # FastAPI routes, dependencies, app, and schemas
+  quiz/             # Layer 4: onboarding quiz, reranking, and size suggestions
+  metrics/          # FITB, compatibility AUC, and graph FITB recall
+  pipeline.py       # RecommendRequest to retrieval, reranking, and size suggestion
   ui/               # Gradio demo placeholder
 
-web/                # Next.js 16 frontend (App Router + TypeScript + Tailwind)
+web/                # Next.js frontend: App Router, TypeScript, and Tailwind CSS
 
 scripts/
-  data/scrape/      # VN store scraping + quality gate
-  data/kb/          # Build/tag/audit/eval graph KB CLIs
-  stylist/          # Inference demo, GRPO training, benchmarks
+  data/scrape/      # Vietnam store scraping and quality gate
+  data/kb/          # Graph knowledge-base build, tag, audit, and evaluation CLIs
+  stylist/          # Inference demo, GRPO training, and benchmarks
   serve.py          # FastAPI launch script
 
-tests/              # Mirrors src/scripts domains
+tests/              # Tests organized by source and script domains
 ```
 
----
-
-## 🔧 Commands hay dùng
+## Common commands
 
 ```bash
-# Data / KB
+# Data and knowledge base
 uv run python -m scripts.data.kb.build_graph --no-qdrant
 uv run python -m scripts.data.kb.eval_graph --seeds 300 --occasion office
 uv run python -m scripts.data.kb.tag_items --limit 50
 
-# Dev
+# Development
 make serve           # Backend (production)
-make serve-dev       # Backend (hot reload, port 8001)
-make web-dev         # Frontend dev server
+make serve-dev       # Backend with hot reload on port 8001
+make web-dev         # Frontend development server
 make web-build       # Frontend production build
 
 # Quality
-make test-fast       # pytest nhanh
-make test            # pytest + coverage
-make lint            # ruff + mypy
-make format          # ruff format + fix
+make test-fast       # Fast pytest suite
+make test            # Pytest with coverage
+make lint            # Ruff and mypy
+make format          # Ruff formatting and fixes
 ```
 
----
+## Recorded snapshot
 
-## 📊 Trạng thái hiện tại
+These figures describe the recorded project snapshot; verify results against your own environment and data.
 
-| Artifact / Metric | Giá trị |
-|---|---|
+| Artifact or metric | Value |
+| --- | --- |
 | Catalog items | 5,618 |
 | Graph edges | 316,559 |
 | Materialized outfits | 1,000 |
-| Item-tag invalid rows | 0 |
-| Test coverage (backend) | Chạy test trên môi trường và dữ liệu của bạn để xác nhận |
+| Invalid item-tag rows | 0 |
+| Backend test coverage | Run the tests in your environment to verify. |
 | Coherence violations | 0 |
-| FITB Recall@5 | ~0.98 |
+| FITB Recall@5 | Approximately 0.98 |
 
----
+## Documentation
 
-## 📚 Tài liệu
+| Document | Description |
+| --- | --- |
+| [Architecture and roadmap](Kien_truc_v3.1.md) | Canonical architecture and roadmap |
+| [System architecture](docs/ARCHITECTURE.md) | Module boundaries, data flow, and schema |
+| [Sprint report](docs/SPRINT_REPORT.md) | Scrum/XP progress report |
+| [Setup guide](docs/SETUP_GUIDE.md) | Detailed setup instructions |
+| [Experiment guide](docs/EXPERIMENT_GUIDE.md) | Evaluation, LLM-judge, and ablation workflows |
+| [Stylist model analysis](docs/STYLIST_MODEL_ANALYSIS.md) | Stylist model selection analysis |
+| [Project structure](docs/PROJECT_STRUCTURE.md) | Detailed project and folder structure |
 
-| File | Nội dung |
-|---|---|
-| [`Kien_truc_v3.1.md`](Kien_truc_v3.1.md) | Kiến trúc/roadmap canonical |
-| [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | Module boundaries, data flow, schema |
-| [`docs/SPRINT_REPORT.md`](docs/SPRINT_REPORT.md) | Báo cáo tiến độ Scrum/XP |
-| [`docs/SETUP_GUIDE.md`](docs/SETUP_GUIDE.md) | Hướng dẫn cài đặt chi tiết cho co-worker |
-| [`docs/EXPERIMENT_GUIDE.md`](docs/EXPERIMENT_GUIDE.md) | Workflow eval, LLM-judge, ablations |
-| [`docs/STYLIST_MODEL_ANALYSIS.md`](docs/STYLIST_MODEL_ANALYSIS.md) | Phân tích chọn model stylist |
-| [`docs/PROJECT_STRUCTURE.md`](docs/PROJECT_STRUCTURE.md) | Báo cáo chi tiết folder/project |
+## Team
 
----
-
-## 👥 Team
-
-| Vai trò | Owner |
-|---|---|
-| Dev A — Data/KB (Tầng 1) | Nhật Quang |
-| Dev B — Model/Stylist (Tầng 2) | Đình Lộc |
-| Dev C — Retrieval / Quiz / UI / API (Tầng 3-4) | Hữu Hoàng |
+| Member | Responsibility |
+| --- | --- |
+| Nhật Quang | Data and knowledge base (layer 1) |
+| Đình Lộc | Model and stylist (layer 2) |
+| Hữu Hoàng | Retrieval, quiz, UI, and API (layers 3–4) |
