@@ -12,6 +12,7 @@ class ChatRequest(BaseModel):
     conversation_id: str | None = Field(None, description="Optional session ID")
     quiz_answers: dict | None = Field(None, description="Onboarding quiz answers")
     history: list[dict[str, str]] = Field(default_factory=list, max_length=20)
+    closet_items: list[dict[str, str]] = Field(default_factory=list, max_length=40)
 
 
 class ItemCardDTO(BaseModel):

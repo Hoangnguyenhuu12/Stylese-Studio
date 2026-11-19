@@ -9,13 +9,13 @@
 
 | Thành phần | Phiên bản tối thiểu | Cách kiểm tra |
 |---|---|---|
-| Python | **3.13** | `python --version` |
+| Python | **3.13** (3.12 chạy được server/KB) | `python --version` |
 | Node.js | **≥20.9** | `node --version` |
-| npm | đi kèm Node.js | `npm --version` |
+| npm | đi kèm Node.js (`npm.cmd` trên PowerShell nếu bị chặn script) | `npm --version` |
 | Git | bất kỳ | `git --version` |
-| GPU NVIDIA (tùy chọn) | 8GB+ VRAM, CUDA 12.4+ | `nvidia-smi` |
+| GPU NVIDIA (để chạy model local) | **≥ 8 GB VRAM**, CUDA 12.4+ | `nvidia-smi` |
 
-> **GPU là optional.** Không có GPU → server vẫn chạy, nhưng stylist chat sẽ unavailable (trả HTTP 503). Recommend vẫn hoạt động qua deterministic path.
+> **Nếu máy không có GPU ≥ 8 GB VRAM (ví dụ laptop 4 GB VRAM hoặc chỉ có CPU):** Bạn vẫn chạy đầy đủ Graph KB + Web UI + AI Stylist bằng **chế độ Remote/Cloud** (Gemini API, OpenAI-compatible API, hoặc host model Qwen của nhóm trên Kaggle/Colab). Xem §4.2 bên dưới.
 
 ---
 
@@ -71,19 +71,66 @@ cd ..
 
 ---
 
-## 4. (Tùy chọn) Tải model stylist
+## 4. Tải dữ liệu Catalog & Cấu hình AI Stylist
 
-**Chỉ cần nếu bạn có GPU NVIDIA và muốn chạy chat với stylist.**
+### 4.1 Tải dữ liệu Catalog (bắt buộc cho `/api/recommend` và `/api/chat`)
+
+`item_edges.parquet` đã có sẵn trong repo, còn 2 file `catalog_metadata.parquet` và `item_store_links.parquet` cần lấy từ `Nhat-Quang/VN_Fashion_data` (dataset có kiểm soát quyền truy cập).
+
+1. Copy `.env.example` thành `.env` và điền `HF_TOKEN=hf_...` (từ tài khoản Hugging Face đã được cấp quyền vào `Nhat-Quang/VN_Fashion_data`).
+2. Chạy:
+```powershell
+.venv\Scripts\python.exe scripts\setup_data.py
+# Thêm --images nếu muốn tải thêm ảnh sản phẩm về data/custom/catalog/images/
+```
+
+---
+
+### 4.2 Chọn chế độ chạy AI Stylist
+
+> Toàn bộ phần truy xuất Graph KB, rerank quiz, gợi ý size và chống bịa `outfit_id` đều chạy **local trên máy bạn** ở cả 3 cách dưới đây.
+
+#### Cách 1 — Chạy model local thật (yêu cầu GPU NVIDIA ≥ 8 GB VRAM)
+
+Model `Qwen3-VL-8B-Thinking` bnb-4bit + LoRA chiếm **~6.8 GB VRAM** (nếu GPU chỉ có 4 GB VRAM sẽ bị tràn VRAM/OOM).
 
 ```bash
 uv run python scripts/setup_models.py --base --adapters
 ```
 
-Script này tải về `D:/Models/`:
-- `Qwen/Qwen3-VL-8B-Thinking` (bnb-4bit, ~6.8 GB VRAM)
-- `Nhat-Quang/outfitmatch-stylist-final-qwen3vl8b-thinking-lora` (LoRA adapter)
+Script này tải base model và LoRA adapter về `D:/Models/`. Trong `.env`, đặt `STYLIST_PROVIDER=local` (hoặc để `auto` khi không cấu hình key remote).
 
-> Nếu không có GPU, **bỏ qua bước này**. Server vẫn chạy bình thường.
+#### Cách 2 — Chạy qua Cloud LLM API (cho máy GPU < 8 GB VRAM hoặc không có GPU)
+
+Thêm vào `.env` một trong hai lựa chọn sau:
+
+```env
+# Lựa chọn A: Gemini API
+STYLIST_PROVIDER=gemini
+GEMINI_API_KEY=AIza...
+STYLIST_MODEL=gemini-2.5-flash
+
+# Lựa chọn B: OpenAI-compatible API (OpenAI, OpenRouter, Groq, Ollama, vLLM...)
+# STYLIST_PROVIDER=openai
+# STYLIST_API_BASE=https://api.openai.com/v1
+# STYLIST_API_KEY=sk-...
+# STYLIST_MODEL=gpt-4o-mini
+```
+
+#### Cách 3 — Chạy model `Qwen3-VL-8B + LoRA` tự train trên Kaggle / Colab (không cần máy mạnh)
+
+Phù hợp khi demo/bảo vệ đồ án bằng đúng model nhóm đã fine-tune (lưu ý phiên Kaggle phải đang mở trong lúc chat):
+
+1. Tạo Kaggle Notebook bật **GPU T4 x2** (hoặc P100, 16 GB VRAM) + **Internet: On**.
+2. Cài thư viện & `cloudflared`, load `unsloth/Qwen3-VL-8B-Thinking-bnb-4bit` + adapter `Nhat-Quang/outfitmatch-stylist-final-qwen3vl8b-thinking-lora` với `device_map={"": 0}`, `torch_dtype="auto"`.
+3. Mở endpoint FastAPI `/v1/chat/completions` và chạy `cloudflared tunnel --url http://localhost:8000` để lấy link `https://xxxx.trycloudflare.com`.
+4. Dán link vào `.env` trên máy local:
+```env
+STYLIST_PROVIDER=openai
+STYLIST_API_BASE=https://xxxx.trycloudflare.com/v1
+STYLIST_API_KEY=kaggle-local
+STYLIST_MODEL=qwen3-vl-8b-stylist
+```
 
 ---
 
@@ -93,30 +140,20 @@ Mở **2 terminal** riêng biệt:
 
 ### Terminal 1 — Backend (FastAPI)
 
-```bash
+```powershell
 cd Stylese-Studio
-make serve
+.venv\Scripts\python.exe scripts\serve.py
 ```
 
-Output mong đợi:
-```
-INFO:     Started server process
-INFO:     Uvicorn running on http://0.0.0.0:8000
-Graph KB: ✅ loaded (4694 nodes, 316559 edges)
-Stylist model: ✅ loaded (có GPU) / ⚠️ unavailable (không GPU)
-```
+(`scripts/serve.py` tự động đọc file `.env` và tải Graph KB + kết nối Stylist theo cấu hình đã chọn.)
 
 ### Terminal 2 — Frontend (Next.js)
 
-```bash
-cd Stylese-Studio
-make web-dev
-```
-
-Output mong đợi:
-```
-▲ Next.js 16.2.10 (Turbopack)
-- Local:        http://localhost:3000
+```powershell
+cd Stylese-Studio\web
+npm run dev
+# Trên Windows PowerShell nếu bị chặn ExecutionPolicy với npm.ps1, dùng:
+# npm.cmd run dev
 ```
 
 ### Truy cập

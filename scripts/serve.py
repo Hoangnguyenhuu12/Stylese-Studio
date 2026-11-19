@@ -10,9 +10,30 @@ uv run re-syncs torch to CPU-only, breaking GPU model loading.
 
 import argparse
 import os
+from pathlib import Path
+
+
+def _load_dotenv(env_path: Path) -> None:
+    """Populate os.environ from a local .env file without overriding set vars."""
+    if not env_path.is_file():
+        return
+    for raw_line in env_path.read_text(encoding="utf-8").splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        key = key.strip()
+        value = value.strip()
+        if value and value[0] in {'"', "'"} and value[-1] == value[0]:
+            value = value[1:-1]
+        elif " #" in value or "\t#" in value:
+            value = value.split("#", 1)[0].strip()
+        if key:
+            os.environ.setdefault(key, value)
 
 
 def main():
+    _load_dotenv(Path(__file__).resolve().parents[1] / ".env")
     parser = argparse.ArgumentParser(description="Start OutfitMatch FastAPI server.")
     parser.add_argument("--host", default="0.0.0.0", help="Bind address")
     parser.add_argument("--port", type=int, default=8000, help="Port")

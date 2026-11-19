@@ -31,9 +31,9 @@ See the [architecture and roadmap](Kien_truc_v3.1.md) and [system architecture](
 
 | Component | Version or requirement | Notes |
 | --- | --- | --- |
-| Python | **3.13** | See `.python-version`. |
-| Node.js | **20.9 or later** | Tested on 26.5.0. |
-| GPU, optional | NVIDIA GPU with at least 8 GB VRAM | Required for the stylist chat model. Without it, chat returns 503 and recommendations use the deterministic path. |
+| Python | **3.13** (3.12 works for server/KB) | See `.python-version`. |
+| Node.js | **20.9 or later** | Tested on 26.5.0. On Windows PowerShell, use `npm.cmd` if `npm.ps1` is blocked. |
+| GPU (local LLM) | NVIDIA GPU with **≥ 8 GB VRAM** | Required only to run the fine-tuned `Qwen3-VL-8B` bnb-4bit model locally (~6.8 GB VRAM). On `< 8 GB` GPUs or CPU-only machines, use Remote/Cloud mode via `.env`. |
 | Qdrant, optional | Docker | Used for seed filtering; the system falls back to a graph scan when unavailable. |
 
 ### 1. Clone and install
@@ -51,27 +51,39 @@ npm install
 cd ..
 ```
 
-The application requires `data/custom/catalog/catalog_metadata.parquet`, `data/custom/catalog/item_store_links.parquet`, and `data/custom/graph/item_edges.parquet` from the same snapshot. Without the catalog or graph, the API can start, but recommendations and the stylist are unavailable. Check `/api/health` for status. The referenced dataset, `Nhat-Quang/VN_Fashion_data`, may require access permission.
-
-### 2. Download the model
-
-This step requires an NVIDIA GPU. The model uses bnb-4bit quantization and approximately 6.8 GB VRAM.
+The application requires `data/custom/catalog/catalog_metadata.parquet`, `data/custom/catalog/item_store_links.parquet`, and `data/custom/graph/item_edges.parquet` from the same snapshot (`item_edges.parquet` is tracked in git; the two catalog parquet files are gitignored). Set `HF_TOKEN` in `.env` (for gated dataset `Nhat-Quang/VN_Fashion_data`) and run:
 
 ```bash
-# Download Qwen3-VL-8B-Thinking bnb-4bit and the LoRA adapter to D:/Models
-uv run python scripts/setup_models.py --base --adapters
+.venv/Scripts/python.exe scripts/setup_data.py
 ```
 
-You can skip this step without a GPU; the server will run, but the stylist will be unavailable.
+Without the catalog or graph, the API can start, but recommendations and the stylist are unavailable. Check `/api/health` for status.
+
+### 2. Configure the AI Stylist (Local GPU vs. Cloud / Remote)
+
+Copy `.env.example` to `.env` and choose one mode:
+
+- **Option A — Local fine-tuned model (requires NVIDIA GPU ≥ 8 GB VRAM, ~6.8 GB used):**
+  ```bash
+  # Download Qwen3-VL-8B-Thinking bnb-4bit and the LoRA adapter to D:/Models
+  uv run python scripts/setup_models.py --base --adapters
+  ```
+  Set `STYLIST_PROVIDER=local` (or leave `auto` with no remote API keys set).
+
+- **Option B — Cloud / Remote LLM (works on laptops with `< 8 GB` VRAM or CPU-only):**
+  - **Gemini API:** set `STYLIST_PROVIDER=gemini`, `GEMINI_API_KEY=...`, `STYLIST_MODEL=gemini-2.5-flash`.
+  - **OpenAI-compatible / Self-hosted Kaggle or Colab GPU:** set `STYLIST_PROVIDER=openai`, `STYLIST_API_BASE=https://<your-endpoint>/v1`, `STYLIST_API_KEY=...`, `STYLIST_MODEL=...`. See [Setup guide](docs/SETUP_GUIDE.md) for hosting your fine-tuned `Qwen3-VL-8B + LoRA` on Kaggle via `cloudflared`.
+
+In both options, outfit search, reranking, sizing, and anti-hallucination validation run locally against the Graph KB.
 
 ### 3. Start the application
 
 ```bash
-# Terminal 1: FastAPI backend
-make serve
+# Terminal 1: FastAPI backend (loads .env automatically)
+.venv/Scripts/python.exe scripts/serve.py   # or: make serve
 
 # Terminal 2: Next.js frontend
-make web-dev
+cd web && npm run dev                       # Windows PowerShell: npm.cmd run dev
 ```
 
 - Frontend: [http://localhost:3000](http://localhost:3000)

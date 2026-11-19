@@ -1,5 +1,5 @@
 // Centralized API base URL.
-// Defaults to localhost:8000 (FastAPI dev server) but can be overridden
-// via NEXT_PUBLIC_API_URL for deployed / remote backends.
-export const API_URL =
-  process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+// Defaults to same-origin relative `/api/...` (proxied through Next.js to
+// Vercel's internal `APP_URL` binding or http://localhost:8000 in local dev).
+// Override via NEXT_PUBLIC_API_URL to target an external backend directly.
+export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "";

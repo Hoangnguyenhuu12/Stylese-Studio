@@ -8,7 +8,7 @@ import { usePreferences } from "./preferences";
 const items = [
   { name: "Home", url: "/", icon: Home },
   { name: "Explore", url: "/explore", icon: Compass },
-  { name: "Stylist", url: "/chat", icon: WandSparkles },
+  { name: "Stylese AI", url: "/chat", icon: WandSparkles },
   { name: "Closet", url: "/closet", icon: Shirt },
   { name: "Profile", url: "/profile", icon: UserRound },
 ];

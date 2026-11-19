@@ -93,29 +93,73 @@ class StylistService:
             exclude_colors=list(args.get("exclude_colors") or []),
         )
 
-    def _execute_tool_call(self, payload: dict[str, Any]) -> list[Any]:
+    def _execute_request(
+        self,
+        request: RecommendRequest,
+        *,
+        quiz_answers: Any | None = None,
+    ) -> list[Any]:
         from outfitmatch.retrieval import search_outfits
 
-        request = self._tool_call_to_request(payload)
-        return search_outfits(
+        has_quiz = isinstance(quiz_answers, dict) and any(
+            quiz_answers.get(k) for k in ("style", "occasions", "favorite_colors", "price_tier")
+        )
+        records = search_outfits(
             request,
             graph=self.graph,
             qdrant_url=self.qdrant_url,
-            top_n=5,
+            top_n=25 if has_quiz else 5,
         )
+        if has_quiz and records:
+            from outfitmatch.quiz.rerank import rerank_by_preference
+            from outfitmatch.quiz.schema import QuizAnswers, quiz_to_profile
+
+            try:
+                quiz_obj = QuizAnswers(**quiz_answers)
+                records = rerank_by_preference(records, quiz_to_profile(quiz_obj), top_k=5)
+            except Exception:  # noqa: BLE001
+                records = records[:5]
+        return records[:5]
+
+    def _execute_tool_call(
+        self,
+        payload: dict[str, Any],
+        *,
+        quiz_answers: Any | None = None,
+    ) -> list[Any]:
+        request = self._tool_call_to_request(payload)
+        return self._execute_request(request, quiz_answers=quiz_answers)
 
     @staticmethod
     def _format_tool_result(records: list[Any]) -> str:
+        if not records:
+            return "Không tìm thấy outfit phù hợp trong Knowledge Base với bộ lọc hiện tại."
         lines = [
             "Kết quả tìm kiếm từ Knowledge Base:",
         ]
         for rec in records:
             lines.append(f"- {rec.outfit_id}: {rec.stylist_explanation_vi[:160]}")
             lines.append(f"  Giá: {rec.price_total_vnd:,} VND | Style: {', '.join(rec.style)}")
+            item_parts = []
+            for it in getattr(rec, "items", []) or []:
+                store = it.store if isinstance(it.store, dict) else {}
+                title = store.get("title_vi") or it.category
+                sizes = store.get("sizes_in_stock") or store.get("available_sizes") or []
+                size_note = f" (size: {', '.join(str(s) for s in sizes[:5])})" if sizes else ""
+                item_parts.append(f"{it.category}: {title}{size_note}")
+            if item_parts:
+                lines.append(f"  Món đồ: {' ; '.join(item_parts)}")
         return "\n".join(lines)
 
     @staticmethod
-    def _format_outfit_cards(records: list[Any]) -> list[dict[str, Any]]:
+    def _format_outfit_cards(
+        records: list[Any],
+        *,
+        height_cm: int | None = None,
+        weight_kg: int | None = None,
+    ) -> list[dict[str, Any]]:
+        from outfitmatch.quiz.sizing import suggest_sizes_for_outfit
+
         cards = []
         for rec in records:
             items = [
@@ -130,6 +174,14 @@ class StylistService:
                 }
                 for it in rec.items
             ]
+            suggested_sizes: dict[str, str] = {}
+            if height_cm is not None and weight_kg is not None and getattr(rec, "items", None):
+                try:
+                    suggested_sizes = suggest_sizes_for_outfit(
+                        rec.items, height_cm=height_cm, weight_kg=weight_kg
+                    )
+                except Exception:  # noqa: BLE001
+                    suggested_sizes = {}
             cards.append(
                 {
                     "outfit_id": rec.outfit_id,
@@ -141,6 +193,7 @@ class StylistService:
                     "color_palette": rec.color_palette,
                     "items": items,
                     "compatibility_score": rec.compatibility_score,
+                    "suggested_sizes": suggested_sizes,
                 }
             )
         return cards
@@ -164,7 +217,11 @@ class StylistService:
             sizes: set[str] = set()
             for rec in records:
                 for it in rec.items:
-                    available = it.store.get("sizes_in_stock") or it.store.get("available_sizes")
+                    available = (
+                        it.store.get("sizes_in_stock")
+                        or it.store.get("available_sizes")
+                        or it.store.get("sizes")
+                    )
                     if available:
                         sizes.update(str(s).upper() for s in available)
             if sizes:
@@ -180,25 +237,84 @@ class StylistService:
         *,
         history: list[dict[str, str]] | None = None,
         quiz_answers: Any | None = None,
+        closet_items: list[dict[str, str]] | None = None,
         height_cm: int | None = None,
         weight_kg: int | None = None,
         max_new_tokens: int = 512,
     ):
         """Yield SSE event dicts for one conversational turn.
 
-        Event types: ``thinking``, ``token``, ``outfit_cards``, ``done``, ``error``.
+        Event types: ``thinking``, ``token``, ``outfit_cards``, ``done``,
+        ``error``.
         """
+        from outfitmatch.stylist.guardrails import (
+            evaluate_fastpath,
+            format_deterministic_kb_reply,
+        )
         from outfitmatch.stylist.validation import validate_response
+
+        decision = evaluate_fastpath(user_message, has_history=bool(history))
+        if decision is not None:
+            if decision.kind == "kb_query" and decision.request is not None:
+                thinking_kb = (
+                    "Searching Stylese catalog..."
+                    if decision.language == "en"
+                    else "Đang tìm phối đồ phù hợp trong kho Stylese..."
+                )
+                yield {"type": "thinking", "data": thinking_kb}
+                try:
+                    records = self._execute_request(
+                        decision.request,
+                        quiz_answers=quiz_answers,
+                    )
+                except Exception as exc:  # noqa: BLE001
+                    logger.exception("Fast-path KB query failed")
+                    yield {"type": "error", "data": f"Lỗi truy vấn KB: {exc}"}
+                    return
+
+                cards = self._format_outfit_cards(
+                    records,
+                    height_cm=height_cm,
+                    weight_kg=weight_kg,
+                )
+                first_sizes = cards[0].get("suggested_sizes") if cards else None
+                reply = format_deterministic_kb_reply(
+                    records,
+                    decision.request,
+                    language=decision.language,
+                    suggested_sizes=first_sizes or None,
+                )
+                yield {"type": "token", "data": reply}
+                if cards:
+                    yield {"type": "outfit_cards", "data": cards}
+                yield {"type": "done"}
+                return
+
+            yield {"type": "token", "data": decision.response_text}
+            yield {"type": "done"}
+            return
 
         messages: list[dict[str, str]] = [{"role": "system", "content": self._system_prompt}]
         if quiz_answers:
             messages[0]["content"] += f"\nSở thích từ quiz: {quiz_answers}"
+        if closet_items:
+            closet_summary = ", ".join(
+                f"{it.get('name', '')} ({it.get('category', '')}"
+                + (f", {it.get('color')}" if it.get("color") else "")
+                + ")"
+                for it in closet_items[:20]
+                if it.get("name")
+            )
+            if closet_summary:
+                messages[0]["content"] += (
+                    "\nMón đồ hiện có trong tủ đồ của người dùng "
+                    "(ưu tiên gợi ý phối hợp nếu phù hợp): " + closet_summary
+                )
         if history:
             messages.extend(history)
         messages.append({"role": "user", "content": user_message})
 
-        thinking_text = "Phân tích yêu cầu..."
-        yield {"type": "thinking", "data": thinking_text}
+        yield {"type": "thinking", "data": "Đang phân tích yêu cầu thời trang của bạn..."}
 
         # Pass 1: parse intent / tool call
         response = self._generate(messages, max_new_tokens=max_new_tokens)
@@ -215,13 +331,21 @@ class StylistService:
                 }
                 return
 
+            yield {
+                "type": "thinking",
+                "data": "Đang tra cứu đồ thị phối đồ Stylese & cá nhân hóa theo hồ sơ...",
+            }
             try:
-                records = self._execute_tool_call(payload)
+                records = self._execute_tool_call(payload, quiz_answers=quiz_answers)
             except Exception as exc:  # noqa: BLE001
                 logger.exception("Tool execution failed")
                 yield {"type": "error", "data": f"Lỗi truy vấn KB: {exc}"}
                 return
 
+            yield {
+                "type": "thinking",
+                "data": "Đang tổng hợp gợi ý & kiểm tra tính chính xác của sản phẩm...",
+            }
             tool_result = self._format_tool_result(records)
             messages.append({"role": "assistant", "content": response})
             messages.append({"role": "tool", "content": tool_result})
@@ -235,7 +359,11 @@ class StylistService:
                 return
 
             yield {"type": "token", "data": final_response}
-            cards = self._format_outfit_cards(records)
+            cards = self._format_outfit_cards(
+                records,
+                height_cm=height_cm,
+                weight_kg=weight_kg,
+            )
             yield {"type": "outfit_cards", "data": cards}
         else:
             # No tool call: validate that we did not hallucinate IDs
