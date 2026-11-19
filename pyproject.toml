@@ -2,51 +2,66 @@
 name = "outfitmatch"
 version = "0.1.0"
 description = "AI Stylist cá nhân hoá cho thị trường VN — v3.1-lite MVP (Kien_truc_v3.1.md)"
-requires-python = ">=3.13"
+requires-python = ">=3.12"
 dependencies = [
-    # ── PyTorch ecosystem ──────────────────────────────────────────────────
-    "torch>=2.12",
-    "torchvision>=0.26",
-    # ── HuggingFace stack (Qwen3-VL + OT-labse + LoRA) ────────────────────
-    "transformers>=4.52",
-    "datasets>=3.2",
-    "huggingface-hub>=0.30",
-    "safetensors>=0.5",
-    "accelerate>=1.4",
-    "peft>=0.14",
-    "bitsandbytes>=0.45",
-    # ── Vector store (v3.1-lite Tầng 3) ───────────────────────────────────
-    "qdrant-client>=1.12",
-    # ── Image I/O ─────────────────────────────────────────────────────────
-    "pillow>=11.0",
-    # ── Data / numerics ───────────────────────────────────────────────────
-    "numpy>=2.1",
-    "pandas>=2.2",
-    "scikit-learn>=1.6",
-    "scipy>=1.14",
-    "pyarrow>=18.0",
-    "tqdm>=4.67",
-    # ── Pydantic / config ─────────────────────────────────────────────────
-    "pydantic>=2.10",
-    "pyyaml>=6.0",
-    "rich>=13.9",
-    # ── Experiment tracking (LoRA fine-tune logs) ─────────────────────────
-    "wandb>=0.19",
-    # ── LLM tagging (Gemini Flash for Tầng 1 metadata tagging) ────────────
-    "google-generativeai>=0.8",
-    "tenacity>=9.0",
-    "diskcache>=5.6",
-    # ── API + Demo UI ─────────────────────────────────────────────────────
+    # ── Core API + KB + Remote Stylist runtime (Vercel-safe) ─────────────
     "fastapi>=0.115",
     "uvicorn[standard]>=0.32",
     "sse-starlette>=3.4",
     "httpx>=0.28",
     "python-multipart>=0.0.20",
+    "pydantic>=2.10",
+    "pyyaml>=6.0",
+    "numpy>=2.1",
+    "pandas>=2.2",
+    "pyarrow>=18.0",
+    "huggingface-hub>=0.30",
+    "google-genai>=1.0",
+    "tenacity>=9.0",
+]
+
+[project.optional-dependencies]
+ml = [
+    "qdrant-client>=1.12",
+    "pillow>=11.0",
+    "diskcache>=5.6",
+    "tqdm>=4.67",
+    "rich>=13.9",
+    "torch>=2.12",
+    "torchvision>=0.26",
+    "transformers>=4.52",
+    "datasets>=3.2",
+    "safetensors>=0.5",
+    "accelerate>=1.4",
+    "peft>=0.14",
+    "bitsandbytes>=0.45",
+    "scikit-learn>=1.6",
+    "scipy>=1.14",
+    "wandb>=0.19",
+    "google-generativeai>=0.8",
     "gradio>=5.9",
 ]
 
 [dependency-groups]
 dev = [
+    "qdrant-client>=1.12",
+    "pillow>=11.0",
+    "diskcache>=5.6",
+    "tqdm>=4.67",
+    "rich>=13.9",
+    "torch>=2.12",
+    "torchvision>=0.26",
+    "transformers>=4.52",
+    "datasets>=3.2",
+    "safetensors>=0.5",
+    "accelerate>=1.4",
+    "peft>=0.14",
+    "bitsandbytes>=0.45",
+    "scikit-learn>=1.6",
+    "scipy>=1.14",
+    "wandb>=0.19",
+    "google-generativeai>=0.8",
+    "gradio>=5.9",
     "pytest>=8.3",
     "pytest-asyncio>=0.25",
     "pytest-cov>=6.0",

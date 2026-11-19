@@ -16,7 +16,7 @@
     "app": {
       "root": ".",
       "framework": "fastapi",
-      "entrypoint": "outfitmatch.server.app:app"
+      "entrypoint": "app.py"
     }
   },
   "rewrites": [
