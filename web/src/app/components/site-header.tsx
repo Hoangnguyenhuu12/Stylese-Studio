@@ -48,7 +48,7 @@ export default function SiteHeader() {
     <Link href="/" className="wordmark" aria-label="Stylese Studio - trang chủ"><span className="brand-symbol" aria-hidden="true"/><span className="brand-reveal"><span className="brand-name">stylese</span></span></Link>
     <NavBar items={items} label={language === "vi" ? "Điều hướng chính" : "Main navigation"} />
     <div className="header-controls">
-      <button type="button" className="preference-button language-button" onClick={toggleLanguage} aria-label={language === "vi" ? "Tiếng Việt. Switch to English" : "English. Chuyển sang tiếng Việt"}><span>{language === "vi" ? "VIE" : "ENG"}</span><span className={`language-flag language-flag-${language}`} aria-hidden="true">{language === "vi" ? "🇻🇳" : "🇺🇸"}</span></button>
+      <button type="button" className="preference-button language-button" onClick={toggleLanguage} aria-label={language === "vi" ? "Switch to English" : "Chuyển sang tiếng Việt"}><span>{language === "vi" ? "ENG" : "VIE"}</span><span className={`language-flag language-flag-${language === "vi" ? "en" : "vi"}`} aria-hidden="true">{language === "vi" ? "🇺🇸" : "🇻🇳"}</span></button>
       <button type="button" className="preference-button theme-button" onClick={toggleTheme} aria-label={language === "vi" ? (theme === "light" ? "Chuyển sang nền tối" : "Chuyển sang nền sáng") : (theme === "light" ? "Switch to dark theme" : "Switch to light theme")} aria-pressed={theme === "dark"}><span className="theme-icon" aria-hidden="true">{theme === "light" ? "☾" : "☀"}</span></button>
     </div>
   </header>;
