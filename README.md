@@ -31,8 +31,8 @@ Tầng 4: Personalization   Quiz 5 câu → preference rerank + size suggestion
 ### 1. Clone + Cài đặt
 
 ```bash
-git clone https://github.com/Hoangnguyenhuu12/Stylese-Finder.git
-cd Stylese-Finder
+git clone https://github.com/Hoangnguyenhuu12/Stylese-Studio.git
+cd Stylese-Studio
 
 # Python backend
 uv sync --group dev

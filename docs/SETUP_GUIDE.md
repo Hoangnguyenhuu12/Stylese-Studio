@@ -22,8 +22,8 @@
 ## 1. Clone repo
 
 ```bash
-git clone https://github.com/Hoangnguyenhuu12/Stylese-Finder.git
-cd Stylese-Finder
+git clone https://github.com/Hoangnguyenhuu12/Stylese-Studio.git
+cd Stylese-Studio
 ```
 
 > **Lưu ý:** Repo đã chuyển từ `vominhnhatquang/fashion_match_project` sang `Lendo-Stylix/fashion_match`.
@@ -94,7 +94,7 @@ Mở **2 terminal** riêng biệt:
 ### Terminal 1 — Backend (FastAPI)
 
 ```bash
-cd Stylese-Finder
+cd Stylese-Studio
 make serve
 ```
 
@@ -109,7 +109,7 @@ Stylist model: ✅ loaded (có GPU) / ⚠️ unavailable (không GPU)
 ### Terminal 2 — Frontend (Next.js)
 
 ```bash
-cd Stylese-Finder
+cd Stylese-Studio
 make web-dev
 ```
 
@@ -271,4 +271,4 @@ fashion_match/
 | Model/Stylist | Đình Lộc |
 | Retrieval/API/UI | Hữu Hoàng |
 
-Repo: https://github.com/Hoangnguyenhuu12/Stylese-Finder
+Repo: https://github.com/Hoangnguyenhuu12/Stylese-Studio
